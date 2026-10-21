@@ -57,3 +57,20 @@ test('REST condition: sentinel charge time, unplugged car and unknown climate', 
   assert.strictEqual(condition.climateOn, null);
   assert.strictEqual(condition.outsideTemperatureC, 8.5);
 });
+
+test('S05 warning lights and key battery are reported only while the car is on', () => {
+  const on = parseCondition(normalizeS05Params({ powerStatusFeedBack: 2, absLightStatus: 1, tpmsLightStatus: 0, keyLowPower: 1, rrPressureWarning: 1 }));
+  assert.strictEqual(on.warningLights.abs, true);
+  assert.strictEqual(on.warningLights.tpms, false);
+  assert.strictEqual(on.warningLights.brake, null, 'not reported stays unknown');
+  assert.strictEqual(on.keyBatteryLow, true);
+  assert.strictEqual(on.tires.rearRight.alarm, 1);
+
+  const off = parseCondition(normalizeS05Params({ powerStatusFeedBack: 0, absLightStatus: 1 }));
+  assert.strictEqual(off.warningLights.abs, null, 'a sleeping car reports healthy bits as 1');
+
+  const rest = parseCondition({ tire: { leftFront: { pressure: 250, status: 0 } } });
+  assert.strictEqual(rest.warningLights, null);
+  assert.strictEqual(rest.keyBatteryLow, null);
+  assert.strictEqual(rest.tires.frontLeft.pressureBar, 2.5);
+});

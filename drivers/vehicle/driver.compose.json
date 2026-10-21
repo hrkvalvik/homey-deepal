@@ -1,8 +1,14 @@
 {
-  "name": { "en": "Deepal vehicle" },
+  "name": {
+    "en": "Deepal vehicle"
+  },
   "class": "car",
-  "platforms": ["local"],
-  "connectivity": ["cloud"],
+  "platforms": [
+    "local"
+  ],
+  "connectivity": [
+    "cloud"
+  ],
   "capabilities": [
     "measure_battery",
     "ev_charging_state",
@@ -18,19 +24,85 @@
     "alarm_contact.doors",
     "alarm_contact.trunk",
     "alarm_contact.windows",
+    "deepal_tire_pressure.front_left",
+    "deepal_tire_pressure.front_right",
+    "deepal_tire_pressure.rear_left",
+    "deepal_tire_pressure.rear_right",
+    "alarm_generic.tire_pressure",
     "deepal_odometer",
     "deepal_last_update"
   ],
   "capabilitiesOptions": {
-    "target_temperature": { "min": 16, "max": 32, "step": 0.5 },
-    "measure_temperature": { "title": { "en": "Cabin temperature" } },
-    "measure_temperature.outside": { "title": { "en": "Outside temperature" } },
-    "measure_humidity": { "title": { "en": "Cabin humidity" } },
-    "measure_current": { "title": { "en": "Charge current" } },
-    "locked": { "title": { "en": "Locked" } },
-    "alarm_contact.doors": { "title": { "en": "Doors / hood open" } },
-    "alarm_contact.trunk": { "title": { "en": "Trunk open" } },
-    "alarm_contact.windows": { "title": { "en": "Windows open" } }
+    "target_temperature": {
+      "min": 16,
+      "max": 32,
+      "step": 0.5
+    },
+    "measure_temperature": {
+      "title": {
+        "en": "Cabin temperature"
+      }
+    },
+    "measure_temperature.outside": {
+      "title": {
+        "en": "Outside temperature"
+      }
+    },
+    "measure_humidity": {
+      "title": {
+        "en": "Cabin humidity"
+      }
+    },
+    "measure_current": {
+      "title": {
+        "en": "Charge current"
+      }
+    },
+    "locked": {
+      "title": {
+        "en": "Locked"
+      }
+    },
+    "alarm_contact.doors": {
+      "title": {
+        "en": "Doors / hood open"
+      }
+    },
+    "alarm_contact.trunk": {
+      "title": {
+        "en": "Trunk open"
+      }
+    },
+    "alarm_contact.windows": {
+      "title": {
+        "en": "Windows open"
+      }
+    },
+    "deepal_tire_pressure.front_left": {
+      "title": {
+        "en": "Tire pressure front left"
+      }
+    },
+    "deepal_tire_pressure.front_right": {
+      "title": {
+        "en": "Tire pressure front right"
+      }
+    },
+    "deepal_tire_pressure.rear_left": {
+      "title": {
+        "en": "Tire pressure rear left"
+      }
+    },
+    "deepal_tire_pressure.rear_right": {
+      "title": {
+        "en": "Tire pressure rear right"
+      }
+    },
+    "alarm_generic.tire_pressure": {
+      "title": {
+        "en": "Tire pressure warning"
+      }
+    }
   },
   "energy": {
     "electricCar": true
@@ -41,15 +113,24 @@
     "xlarge": "{{driverAssetsPath}}/images/xlarge.png"
   },
   "pair": [
-    { "id": "login" },
+    {
+      "id": "login"
+    },
     {
       "id": "list_devices",
       "template": "list_devices",
-      "navigation": { "next": "add_devices" }
+      "navigation": {
+        "next": "add_devices"
+      }
     },
-    { "id": "add_devices", "template": "add_devices" }
+    {
+      "id": "add_devices",
+      "template": "add_devices"
+    }
   ],
   "repair": [
-    { "id": "login" }
+    {
+      "id": "login"
+    }
   ]
 }

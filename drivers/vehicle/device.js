@@ -14,6 +14,27 @@ const WAKE_BEFORE_COMMAND_TIMEOUT_MS = 30 * 1000;
 // The car runs a physical cycle; repeating sooner is rejected by the vehicle.
 const ACTION_COOLDOWN_MS = { flash: 30000, horn: 6000, flashAndHorn: 30000 };
 
+const TIRE_CAPABILITIES = {
+  frontLeft: 'deepal_tire_pressure.front_left',
+  frontRight: 'deepal_tire_pressure.front_right',
+  rearLeft: 'deepal_tire_pressure.rear_left',
+  rearRight: 'deepal_tire_pressure.rear_right',
+};
+const TIRE_ALARM_CAPABILITY = 'alarm_generic.tire_pressure';
+
+// Only S05 (MQTT) cars report these, so they are added the first time a value arrives.
+const WARNING_LIGHTS = [
+  { key: 'battery12v', capability: 'alarm_generic.battery_12v', title: '12 V battery warning' },
+  { key: 'abs', capability: 'alarm_generic.abs', title: 'ABS warning' },
+  { key: 'brake', capability: 'alarm_generic.brake', title: 'Brake warning' },
+  { key: 'brakeFluid', capability: 'alarm_generic.brake_fluid', title: 'Brake fluid warning' },
+  { key: 'eps', capability: 'alarm_generic.power_steering', title: 'Power steering warning' },
+  { key: 'powerLimit', capability: 'alarm_generic.power_limit', title: 'Power limit warning' },
+  { key: 'powerSystem', capability: 'alarm_generic.power_system', title: 'Power system warning' },
+  { key: 'tractionBatteryLow', capability: 'alarm_generic.traction_battery_low', title: 'Traction battery low' },
+  { key: 'keyBatteryLow', capability: 'alarm_generic.key_battery', title: 'Key fob battery low' },
+];
+
 class VehicleDevice extends Homey.Device {
 
   async onInit() {
@@ -21,6 +42,12 @@ class VehicleDevice extends Homey.Device {
     this.lastWakeAt = 0;
     this.lastActionAt = {};
     this.polling = false;
+
+    // Cars paired with an older version lack the tire capabilities.
+    for (const capability of [...Object.values(TIRE_CAPABILITIES), TIRE_ALARM_CAPABILITY]) {
+      if (!this.hasCapability(capability)) await this.addCapability(capability).catch(this.error);
+    }
+    this.warningLightTrigger = this.homey.flow.getDeviceTriggerCard('warning_light_on');
 
     this.registerCapabilityListener('locked', value => this._runCommand(
       client => client.setLocked(this.vehicleId, value), { pin: true },
@@ -149,6 +176,17 @@ class VehicleDevice extends Homey.Device {
     await set('alarm_contact.trunk', condition.trunkOpen);
     await set('alarm_contact.windows', Object.values(condition.windowsOpen).some(Boolean));
 
+    for (const [position, capability] of Object.entries(TIRE_CAPABILITIES)) {
+      await set(capability, condition.tires[position].pressureBar);
+    }
+    const tireAlarms = Object.values(condition.tires).map(tire => tire.alarm).filter(alarm => alarm !== null);
+    const tpmsLight = condition.warningLights ? condition.warningLights.tpms : null;
+    if (tireAlarms.length || tpmsLight !== null) {
+      await set(TIRE_ALARM_CAPABILITY, tireAlarms.some(alarm => alarm !== 0) || tpmsLight === true);
+    }
+
+    await this._applyWarningLights(condition);
+
     const chargingState = this._evChargingState(condition);
     const wasCharging = this.getCapabilityValue('ev_charging_state') === 'plugged_in_charging';
     await set('ev_charging_state', chargingState);
@@ -162,6 +200,27 @@ class VehicleDevice extends Homey.Device {
       await set('deepal_last_update', new Date(condition.lastUpdated * 1000).toLocaleString(this.homey.i18n.getLanguage(), {
         timeZone: this.homey.clock.getTimezone(),
       }));
+    }
+  }
+
+  /** Add each warning light on its first report, then trigger the Flow card when one turns on. */
+  async _applyWarningLights(condition) {
+    const values = { ...(condition.warningLights || {}), keyBatteryLow: condition.keyBatteryLow };
+    for (const { key, capability, title } of WARNING_LIGHTS) {
+      const value = values[key];
+      // null: unknown (not reported, or the car is off and the bits are not trusted).
+      if (value === null || value === undefined) continue;
+      if (!this.hasCapability(capability)) {
+        await this.addCapability(capability);
+        await this.setCapabilityOptions(capability, { title: { en: title } }).catch(this.error);
+      }
+      const wasOn = this.getCapabilityValue(capability) === true;
+      if (this.getCapabilityValue(capability) !== value) {
+        await this.setCapabilityValue(capability, value).catch(err => this.error(capability, err.message));
+      }
+      if (value && !wasOn) {
+        await this.warningLightTrigger.trigger(this, { light: title }).catch(this.error);
+      }
     }
   }
 

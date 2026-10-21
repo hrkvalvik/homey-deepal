@@ -21,10 +21,11 @@ international My Changan cloud. It is a Node.js port of the protocol reverse-eng
 | Area | Details |
 | --- | --- |
 | Pairing | Email code (recommended) or SMS code login, then pick your cars. *Repair* logs in again. |
-| Telemetry | Battery %, range, odometer, charging state, charge current and time remaining, lock state, climate on/off and target temperature, cabin/outside temperature, cabin humidity, doors/hood, trunk and windows open. |
+| Telemetry | Battery %, range, odometer, charging state, charge current and time remaining, lock state, climate on/off and target temperature, cabin/outside temperature, cabin humidity, doors/hood, trunk and windows open, tire pressures per wheel and a tire pressure warning. |
+| Warning lights (S05) | 12 V battery, ABS, brake, brake fluid, power steering, power limit, power system, traction battery low and key fob battery. Each appears on the device the first time the car reports it; they are only read while the car is on. |
 | Controls | Lock/unlock (PIN), climate on/off and target temperature. |
 | Flow actions | Start climate at X °C, stop climate, flash lights, sound horn, both, open trunk (PIN), open/close windows (PIN), set charge limit, wake and refresh. |
-| Flow triggers / conditions | Charging started/stopped, is charging, is plugged in. Plus the built-in cards for every capability (battery changed, locked changed, door opened, ...). |
+| Flow triggers / conditions | Charging started/stopped, a dashboard warning light turned on (with the light name as a tag), is charging, is plugged in. Plus the built-in cards for every capability (battery changed, locked changed, door opened, ...). |
 | Energy | Registered as an electric car (`energy.electricCar`). |
 
 Data sources: S05 (`protocolType: MQTT`) is read over the CA MQTT broker, falling back to the REST
@@ -64,7 +65,7 @@ Requires Homey Pro (2023 or later) with firmware 12.4.5 or newer.
 ## Tests
 
 ```sh
-npm test                               # 10 offline tests, incl. a fake MQTT broker
+npm test                               # 11 offline tests, incl. a fake MQTT broker
 homey app validate --level publish
 ```
 
@@ -83,7 +84,7 @@ real car yet.
 | S05 MQTT condition and wake | Verified live upstream | Ported, tested against a fake broker |
 | Climate, lock, windows, trunk, flash/horn, charge limit commands | Verified live upstream | Ported, signature verified against the Python SDK |
 | E07 `SDA-MQTT` live data | Beta upstream | **Not ported**: E07 uses the REST snapshot |
-| Location, seat/steering heating, charge schedule, tires, warning lights | Available upstream | Not exposed yet (the parser already reads tires and warning lights) |
+| Location, seat/steering heating, charge schedule | Available upstream | Not exposed yet |
 | Latin America region | Available upstream | Selectable at login, untested |
 
 Things to try first on a real car: pairing, a poll (check *Last report*), then flash the lights.

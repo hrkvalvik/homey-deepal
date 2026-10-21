@@ -56,6 +56,34 @@
             "filter": "driver_id=vehicle"
           }
         ]
+      },
+      {
+        "id": "warning_light_on",
+        "title": {
+          "en": "A dashboard warning light turned on"
+        },
+        "hint": {
+          "en": "S05 only: reported while the car is on."
+        },
+        "tokens": [
+          {
+            "name": "light",
+            "type": "string",
+            "title": {
+              "en": "Warning light"
+            },
+            "example": {
+              "en": "ABS warning"
+            }
+          }
+        ],
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=vehicle"
+          }
+        ]
       }
     ],
     "conditions": [
@@ -290,6 +318,11 @@
         "alarm_contact.doors",
         "alarm_contact.trunk",
         "alarm_contact.windows",
+        "deepal_tire_pressure.front_left",
+        "deepal_tire_pressure.front_right",
+        "deepal_tire_pressure.rear_left",
+        "deepal_tire_pressure.rear_right",
+        "alarm_generic.tire_pressure",
         "deepal_odometer",
         "deepal_last_update"
       ],
@@ -337,6 +370,31 @@
         "alarm_contact.windows": {
           "title": {
             "en": "Windows open"
+          }
+        },
+        "deepal_tire_pressure.front_left": {
+          "title": {
+            "en": "Tire pressure front left"
+          }
+        },
+        "deepal_tire_pressure.front_right": {
+          "title": {
+            "en": "Tire pressure front right"
+          }
+        },
+        "deepal_tire_pressure.rear_left": {
+          "title": {
+            "en": "Tire pressure rear left"
+          }
+        },
+        "deepal_tire_pressure.rear_right": {
+          "title": {
+            "en": "Tire pressure rear right"
+          }
+        },
+        "alarm_generic.tire_pressure": {
+          "title": {
+            "en": "Tire pressure warning"
           }
         }
       },
@@ -514,6 +572,21 @@
       "insights": true,
       "uiComponent": "sensor",
       "icon": "/assets/capabilities/range.svg"
+    },
+    "deepal_tire_pressure": {
+      "type": "number",
+      "title": {
+        "en": "Tire pressure"
+      },
+      "units": {
+        "en": "bar"
+      },
+      "decimals": 2,
+      "getable": true,
+      "setable": false,
+      "insights": true,
+      "uiComponent": "sensor",
+      "icon": "/assets/capabilities/tire.svg"
     }
   }
 }
