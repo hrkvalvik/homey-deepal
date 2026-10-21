@@ -1,0 +1,13 @@
+{
+  "errors": {
+    "not_logged_in": "Not logged in to My Changan. Add or repair a vehicle to log in.",
+    "session_expired": "The My Changan session expired or was signed out by another login. Repair this device to log in again.",
+    "pin_required": "Set the remote-control PIN in the device settings first.",
+    "pin_format": "The PIN must be 6 digits.",
+    "command_failed": "The car rejected the command (__reason__).",
+    "cooldown": "The car is still running the previous action. Try again in __seconds__ s."
+  },
+  "pair": {
+    "request_code_first": "Request a verification code first."
+  }
+}

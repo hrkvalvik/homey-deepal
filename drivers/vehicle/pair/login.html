@@ -1,0 +1,113 @@
+<header class="homey-header">
+  <h1 class="homey-title">Log in to My Changan</h1>
+  <p class="homey-subtitle">
+    Use a <strong>secondary account</strong> shared from your main one: logging in here can sign the
+    official app out, and the other way round.
+  </p>
+</header>
+
+<form id="step-request" class="homey-form" onsubmit="return false">
+  <div class="homey-form-group">
+    <label class="homey-form-label" for="method">Login method</label>
+    <select class="homey-form-select" id="method">
+      <option value="email" selected>Email code (recommended)</option>
+      <option value="sms">SMS code</option>
+    </select>
+  </div>
+  <div class="homey-form-group" id="email-group">
+    <label class="homey-form-label" for="email">Email</label>
+    <input class="homey-form-input" id="email" type="email" autocomplete="username" />
+  </div>
+  <div class="homey-form-group" id="phone-group" style="display:none">
+    <label class="homey-form-label" for="dialCode">Dial code (digits, e.g. 47)</label>
+    <input class="homey-form-input" id="dialCode" type="text" inputmode="numeric" />
+    <label class="homey-form-label" for="phone">Phone number (without country prefix)</label>
+    <input class="homey-form-input" id="phone" type="tel" />
+  </div>
+  <div class="homey-form-group">
+    <label class="homey-form-label" for="country">Sales country (2-letter code, e.g. NO, ES, GB)</label>
+    <input class="homey-form-input" id="country" type="text" maxlength="2" value="GB" />
+  </div>
+  <div class="homey-form-group">
+    <label class="homey-form-label" for="environment">Region</label>
+    <select class="homey-form-select" id="environment">
+      <option value="release_eu" selected>Europe</option>
+      <option value="release_znm">Latin America</option>
+    </select>
+  </div>
+  <button class="homey-button-primary-full" id="request-button">Send verification code</button>
+</form>
+
+<form id="step-code" class="homey-form" style="display:none" onsubmit="return false">
+  <div class="homey-form-group">
+    <label class="homey-form-label" for="code">Verification code</label>
+    <input class="homey-form-input" id="code" type="text" inputmode="numeric" autocomplete="one-time-code" />
+  </div>
+  <button class="homey-button-primary-full" id="login-button">Log in</button>
+  <button class="homey-button-transparent" id="back-button">Resend or change address</button>
+</form>
+
+<script type="application/javascript">
+  (async function () {
+    const $ = id => document.getElementById(id);
+    let mode = 'pair';
+
+    try {
+      const state = await Homey.emit('get_mode');
+      mode = state.mode;
+      if (mode === 'pair' && state.loggedIn) {
+        Homey.showView('list_devices');
+        return;
+      }
+    } catch (err) {
+      // show the form
+    }
+
+    $('method').addEventListener('change', () => {
+      const sms = $('method').value === 'sms';
+      $('email-group').style.display = sms ? 'none' : '';
+      $('phone-group').style.display = sms ? '' : 'none';
+    });
+
+    $('request-button').addEventListener('click', async () => {
+      const button = $('request-button');
+      button.classList.add('is-loading');
+      try {
+        await Homey.emit('request_code', {
+          method: $('method').value,
+          email: $('email').value.trim(),
+          phone: $('phone').value.trim(),
+          dialCode: $('dialCode').value.trim(),
+          country: $('country').value.trim(),
+          environment: $('environment').value,
+        });
+        $('step-request').style.display = 'none';
+        $('step-code').style.display = '';
+        $('code').focus();
+      } catch (err) {
+        Homey.alert(err.message || String(err), 'error');
+      } finally {
+        button.classList.remove('is-loading');
+      }
+    });
+
+    $('back-button').addEventListener('click', () => {
+      $('step-code').style.display = 'none';
+      $('step-request').style.display = '';
+    });
+
+    $('login-button').addEventListener('click', async () => {
+      const button = $('login-button');
+      button.classList.add('is-loading');
+      try {
+        await Homey.emit('login', { code: $('code').value.trim() });
+        if (mode === 'repair') Homey.done();
+        else Homey.showView('list_devices');
+      } catch (err) {
+        Homey.alert(err.message || String(err), 'error');
+      } finally {
+        button.classList.remove('is-loading');
+      }
+    });
+  })();
+</script>

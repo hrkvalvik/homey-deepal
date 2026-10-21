@@ -1,0 +1,12 @@
+{
+  "type": "boolean",
+  "title": { "en": "Climate" },
+  "getable": true,
+  "setable": true,
+  "insights": true,
+  "insightsTitleTrue": { "en": "Climate turned on" },
+  "insightsTitleFalse": { "en": "Climate turned off" },
+  "uiComponent": "toggle",
+  "uiQuickAction": true,
+  "icon": "/assets/capabilities/climate.svg"
+}

@@ -1,0 +1,55 @@
+{
+  "triggers": [
+    { "id": "charging_started", "title": { "en": "Charging started" } },
+    { "id": "charging_stopped", "title": { "en": "Charging stopped" } }
+  ],
+  "conditions": [
+    { "id": "is_charging", "title": { "en": "Is !{{|not}} charging" } },
+    { "id": "is_plugged_in", "title": { "en": "Is !{{|not}} plugged in" } }
+  ],
+  "actions": [
+    {
+      "id": "climate_on",
+      "title": { "en": "Start climate" },
+      "titleFormatted": { "en": "Start climate at [[temperature]] °C" },
+      "args": [
+        { "type": "number", "name": "temperature", "min": 16, "max": 32, "step": 0.5, "placeholder": { "en": "22" } }
+      ]
+    },
+    { "id": "climate_off", "title": { "en": "Stop climate" } },
+    { "id": "flash_lights", "title": { "en": "Flash the lights" } },
+    { "id": "sound_horn", "title": { "en": "Sound the horn" } },
+    { "id": "flash_and_horn", "title": { "en": "Flash the lights and sound the horn" } },
+    { "id": "open_trunk", "title": { "en": "Open the trunk" }, "hint": { "en": "Requires the remote-control PIN." } },
+    {
+      "id": "set_windows",
+      "title": { "en": "Open or close the windows" },
+      "titleFormatted": { "en": "[[state]] the windows" },
+      "hint": { "en": "Requires the remote-control PIN." },
+      "args": [
+        {
+          "type": "dropdown",
+          "name": "state",
+          "values": [
+            { "id": "open", "label": { "en": "Open" } },
+            { "id": "close", "label": { "en": "Close" } }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "set_charge_limit",
+      "title": { "en": "Set charge limit" },
+      "titleFormatted": { "en": "Set charge limit to [[percent]] %" },
+      "hint": { "en": "Not supported by the S05 EV (the car accepts it without effect)." },
+      "args": [
+        { "type": "range", "name": "percent", "min": 50, "max": 100, "step": 5, "label": " %" }
+      ]
+    },
+    {
+      "id": "wake_and_refresh",
+      "title": { "en": "Wake the car and refresh" },
+      "hint": { "en": "Wakes an S05 (at most once every 5 minutes) and waits up to 60 s for a fresh report." }
+    }
+  ]
+}

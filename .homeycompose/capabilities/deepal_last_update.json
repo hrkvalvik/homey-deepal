@@ -1,0 +1,8 @@
+{
+  "type": "string",
+  "title": { "en": "Last report" },
+  "getable": true,
+  "setable": false,
+  "uiComponent": "sensor",
+  "icon": "/assets/capabilities/clock.svg"
+}

@@ -1,0 +1,47 @@
+[
+  {
+    "type": "group",
+    "label": { "en": "Polling" },
+    "children": [
+      {
+        "id": "poll_interval",
+        "type": "number",
+        "label": { "en": "Poll interval" },
+        "hint": { "en": "Minutes between status reads. A normal poll never wakes the car." },
+        "value": 5,
+        "min": 2,
+        "max": 120,
+        "units": { "en": "min" }
+      },
+      {
+        "id": "allow_wake",
+        "type": "checkbox",
+        "label": { "en": "Wake the car before lock, window and trunk commands" },
+        "hint": { "en": "Only for MQTT cars (S05). Wakes are limited to one every 5 minutes to protect the 12 V battery." },
+        "value": true
+      }
+    ]
+  },
+  {
+    "type": "group",
+    "label": { "en": "Remote control" },
+    "children": [
+      {
+        "id": "control_pin",
+        "type": "password",
+        "label": { "en": "Remote-control PIN" },
+        "hint": { "en": "The 6-digit PIN created in the My Changan app with the account Homey signs in with. Required to lock/unlock and open windows or trunk. It is verified when saved." },
+        "value": ""
+      },
+      {
+        "id": "climate_runtime",
+        "type": "number",
+        "label": { "en": "Climate run time" },
+        "value": 30,
+        "min": 5,
+        "max": 30,
+        "units": { "en": "min" }
+      }
+    ]
+  }
+]

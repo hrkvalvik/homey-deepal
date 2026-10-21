@@ -1,0 +1,27 @@
+{
+  "id": "com.github.deepal.alternative",
+  "version": "0.1.0",
+  "compatibility": ">=12.4.5",
+  "sdk": 3,
+  "platforms": ["local"],
+  "name": {
+    "en": "Deepal"
+  },
+  "description": {
+    "en": "Battery, charging, climate and remote control for Deepal / Changan cars"
+  },
+  "category": ["climate"],
+  "permissions": [],
+  "brandColor": "#1B3A5B",
+  "images": {
+    "small": "/assets/images/small.png",
+    "large": "/assets/images/large.png",
+    "xlarge": "/assets/images/xlarge.png"
+  },
+  "author": {
+    "name": "Your Name",
+    "email": "you@example.com"
+  },
+  "support": "https://github.com/YOUR_USER/homey-deepal/issues",
+  "source": "https://github.com/YOUR_USER/homey-deepal"
+}

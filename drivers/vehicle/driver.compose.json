@@ -1,0 +1,55 @@
+{
+  "name": { "en": "Deepal vehicle" },
+  "class": "car",
+  "platforms": ["local"],
+  "connectivity": ["cloud"],
+  "capabilities": [
+    "measure_battery",
+    "ev_charging_state",
+    "deepal_range",
+    "deepal_charge_time_remaining",
+    "measure_current",
+    "locked",
+    "deepal_climate",
+    "target_temperature",
+    "measure_temperature",
+    "measure_temperature.outside",
+    "measure_humidity",
+    "alarm_contact.doors",
+    "alarm_contact.trunk",
+    "alarm_contact.windows",
+    "deepal_odometer",
+    "deepal_last_update"
+  ],
+  "capabilitiesOptions": {
+    "target_temperature": { "min": 16, "max": 32, "step": 0.5 },
+    "measure_temperature": { "title": { "en": "Cabin temperature" } },
+    "measure_temperature.outside": { "title": { "en": "Outside temperature" } },
+    "measure_humidity": { "title": { "en": "Cabin humidity" } },
+    "measure_current": { "title": { "en": "Charge current" } },
+    "locked": { "title": { "en": "Locked" } },
+    "alarm_contact.doors": { "title": { "en": "Doors / hood open" } },
+    "alarm_contact.trunk": { "title": { "en": "Trunk open" } },
+    "alarm_contact.windows": { "title": { "en": "Windows open" } }
+  },
+  "energy": {
+    "electricCar": true
+  },
+  "images": {
+    "small": "{{driverAssetsPath}}/images/small.png",
+    "large": "{{driverAssetsPath}}/images/large.png",
+    "xlarge": "{{driverAssetsPath}}/images/xlarge.png"
+  },
+  "pair": [
+    { "id": "login" },
+    {
+      "id": "list_devices",
+      "template": "list_devices",
+      "navigation": { "next": "add_devices" }
+    },
+    { "id": "add_devices", "template": "add_devices" }
+  ],
+  "repair": [
+    { "id": "login" }
+  ]
+}

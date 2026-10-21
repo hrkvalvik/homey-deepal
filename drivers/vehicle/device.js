@@ -1,0 +1,260 @@
+'use strict';
+
+const Homey = require('homey');
+const DeepalClient = require('../../lib/DeepalClient');
+
+const { DeepalAuthError } = DeepalClient.errors;
+const { FLASH_HONK } = DeepalClient;
+
+// Limits taken from the Home Assistant integration (const.py) to protect the 12 V battery.
+const WAKE_STALE_AFTER_S = 120;
+const WAKE_COOLDOWN_MS = 5 * 60 * 1000;
+const WAKE_REPORT_TIMEOUT_MS = 60 * 1000;
+const WAKE_BEFORE_COMMAND_TIMEOUT_MS = 30 * 1000;
+// The car runs a physical cycle; repeating sooner is rejected by the vehicle.
+const ACTION_COOLDOWN_MS = { flash: 30000, horn: 6000, flashAndHorn: 30000 };
+
+class VehicleDevice extends Homey.Device {
+
+  async onInit() {
+    this.condition = null;
+    this.lastWakeAt = 0;
+    this.lastActionAt = {};
+    this.polling = false;
+
+    this.registerCapabilityListener('locked', value => this._runCommand(
+      client => client.setLocked(this.vehicleId, value), { pin: true },
+    ));
+    this.registerCapabilityListener('deepal_climate', value => this._setClimate(value, this.getCapabilityValue('target_temperature')));
+    this.registerCapabilityListener('target_temperature', async value => {
+      if (this.getCapabilityValue('deepal_climate')) await this._setClimate(true, value);
+    });
+
+    this._schedulePolling();
+    this.homey.setTimeout(() => this.poll(), 2000);
+  }
+
+  get vehicleId() {
+    return this.getData().id;
+  }
+
+  get isMqttVehicle() {
+    return DeepalClient.isMqttVehicle(this.getStoreValue('protocolType'));
+  }
+
+  _client() {
+    const client = this.homey.app.getClient();
+    client.controlPin = this.getSetting('control_pin') || null;
+    return client;
+  }
+
+  _schedulePolling() {
+    if (this.pollTimer) this.homey.clearInterval(this.pollTimer);
+    const minutes = Math.max(2, Number(this.getSetting('poll_interval')) || 5);
+    this.pollTimer = this.homey.setInterval(() => this.poll(), minutes * 60 * 1000);
+  }
+
+  async onSettings({ newSettings, changedKeys }) {
+    if (changedKeys.includes('control_pin') && newSettings.control_pin) {
+      if (!/^\d{6}$/.test(newSettings.control_pin)) throw new Error(this.homey.__('errors.pin_format'));
+      // Verified against the account so a wrong PIN is rejected instead of stored.
+      await this.homey.app.getClient().verifyControlPin(newSettings.control_pin);
+    }
+    if (changedKeys.includes('poll_interval')) {
+      this.homey.setTimeout(() => this._schedulePolling(), 0);
+    }
+  }
+
+  async onDeleted() {
+    if (this.pollTimer) this.homey.clearInterval(this.pollTimer);
+  }
+
+  // --- Telemetry -----------------------------------------------------------------
+
+  /** Periodic poll. Never wakes the car. */
+  async poll() {
+    if (this.polling) return;
+    this.polling = true;
+    try {
+      const client = this._client();
+      let condition = null;
+      if (this.isMqttVehicle) {
+        try {
+          condition = await client.getMqttCondition(this.vehicleId);
+        } catch (err) {
+          this.log('MQTT condition unavailable, using REST snapshot:', err.message);
+        }
+      }
+      if (!condition) condition = await client.getRestCondition(this.vehicleId);
+      await this._applyCondition(condition);
+      if (!this.getAvailable()) await this.setAvailable();
+    } catch (err) {
+      await this._handleError(err);
+    } finally {
+      this.polling = false;
+    }
+  }
+
+  /** Wake an S05 and wait for a fresh report, respecting the per-vehicle cooldown. */
+  async wakeAndRefresh(timeoutMs = WAKE_REPORT_TIMEOUT_MS) {
+    if (!this.isMqttVehicle) return this.poll();
+    if (Date.now() - this.lastWakeAt < WAKE_COOLDOWN_MS) {
+      this.log('Wake skipped: cooldown active');
+      return this.poll();
+    }
+    this.lastWakeAt = Date.now();
+    const previous = this.condition ? this.condition.lastUpdated : null;
+    const condition = await this._client().wakeAndWaitForReport(this.vehicleId, previous, timeoutMs);
+    if (condition) await this._applyCondition(condition);
+    return undefined;
+  }
+
+  async _wakeIfStale() {
+    if (!this.isMqttVehicle || !this.getSetting('allow_wake')) return;
+    const last = this.condition && this.condition.lastUpdated;
+    if (last && Date.now() / 1000 - last < WAKE_STALE_AFTER_S) return;
+    try {
+      await this.wakeAndRefresh(WAKE_BEFORE_COMMAND_TIMEOUT_MS);
+    } catch (err) {
+      this.log('Wake before command failed, sending anyway:', err.message);
+    }
+  }
+
+  async _applyCondition(condition) {
+    this.condition = condition;
+    const set = async (capability, value) => {
+      if (value === null || value === undefined || Number.isNaN(value)) return;
+      if (!this.hasCapability(capability)) return;
+      if (this.getCapabilityValue(capability) !== value) {
+        await this.setCapabilityValue(capability, value).catch(err => this.error(capability, err.message));
+      }
+    };
+
+    await set('measure_battery', condition.socPercent);
+    await set('deepal_range', condition.rangeKm);
+    await set('deepal_odometer', condition.odometerKm);
+    await set('measure_temperature', condition.insideTemperatureC);
+    await set('measure_temperature.outside', condition.outsideTemperatureC);
+    await set('measure_humidity', condition.humidityPercent);
+    await set('locked', condition.locked);
+    await set('deepal_climate', condition.climateOn);
+    if (condition.targetTemperatureC !== null && condition.targetTemperatureC >= 16 && condition.targetTemperatureC <= 32) {
+      await set('target_temperature', condition.targetTemperatureC);
+    }
+    await set('measure_current', condition.chargeCurrentA);
+    await set('deepal_charge_time_remaining', condition.remainingChargeTimeMin);
+
+    const doorsOpen = Object.values(condition.doorsOpen).some(Boolean) || condition.hoodOpen;
+    await set('alarm_contact.doors', doorsOpen);
+    await set('alarm_contact.trunk', condition.trunkOpen);
+    await set('alarm_contact.windows', Object.values(condition.windowsOpen).some(Boolean));
+
+    const chargingState = this._evChargingState(condition);
+    const wasCharging = this.getCapabilityValue('ev_charging_state') === 'plugged_in_charging';
+    await set('ev_charging_state', chargingState);
+    if (chargingState) {
+      const isCharging = chargingState === 'plugged_in_charging';
+      if (isCharging && !wasCharging) await this.driver.chargingStartedTrigger.trigger(this).catch(this.error);
+      if (!isCharging && wasCharging) await this.driver.chargingStoppedTrigger.trigger(this).catch(this.error);
+    }
+
+    if (condition.lastUpdated) {
+      await set('deepal_last_update', new Date(condition.lastUpdated * 1000).toLocaleString(this.homey.i18n.getLanguage(), {
+        timeZone: this.homey.clock.getTimezone(),
+      }));
+    }
+  }
+
+  _evChargingState(condition) {
+    if (condition.charging === true) return 'plugged_in_charging';
+    if (condition.chargerConnected === true) return 'plugged_in';
+    if (condition.chargerConnected === false || condition.charging === false) return 'plugged_out';
+    return null;
+  }
+
+  async _handleError(err) {
+    this.error(err.message);
+    if (err instanceof DeepalAuthError) {
+      await this.setUnavailable(this.homey.__('errors.session_expired')).catch(this.error);
+    }
+  }
+
+  // --- Commands --------------------------------------------------------------------
+
+  /** Send a signed command, wait for the car to confirm and refresh. Throws a readable error. */
+  async _runCommand(send, { pin = false } = {}) {
+    if (pin && !this.getSetting('control_pin')) throw new Error(this.homey.__('errors.pin_required'));
+    if (pin) await this._wakeIfStale();
+    try {
+      const client = this._client();
+      const commandId = await send(client);
+      const result = await client.waitForCommand(this.vehicleId, commandId);
+      if (result.status === 'failed') {
+        throw new Error(this.homey.__('errors.command_failed', { reason: result.message || result.raw?.resultCode || '?' }));
+      }
+      this.homey.setTimeout(() => this.poll(), 5000);
+    } catch (err) {
+      await this._handleError(err);
+      throw err;
+    }
+  }
+
+  _setClimate(enabled, targetTemperature) {
+    const temperature = Number(targetTemperature) || 22;
+    const runtime = Number(this.getSetting('climate_runtime')) || 30;
+    return this._runCommand(client => client.setAirConditioner(this.vehicleId, enabled, temperature, runtime));
+  }
+
+  /** Flash/horn actions: refuse while the car still runs the previous cycle; start the cooldown once accepted. */
+  async _runTimedAction(action, actionType) {
+    const wait = (this.lastActionAt[action] || 0) + ACTION_COOLDOWN_MS[action] - Date.now();
+    if (wait > 0) throw new Error(this.homey.__('errors.cooldown', { seconds: Math.ceil(wait / 1000) }));
+    await this._runCommand(client => client.flashHonk(this.vehicleId, actionType));
+    this.lastActionAt[action] = Date.now();
+  }
+
+  // --- Flow card handlers (registered in app.js) -----------------------------------
+
+  async flowClimateOn({ temperature }) {
+    await this._setClimate(true, temperature);
+    await this.setCapabilityValue('target_temperature', temperature).catch(this.error);
+    await this.setCapabilityValue('deepal_climate', true).catch(this.error);
+  }
+
+  async flowClimateOff() {
+    await this._setClimate(false, this.getCapabilityValue('target_temperature'));
+    await this.setCapabilityValue('deepal_climate', false).catch(this.error);
+  }
+
+  async flowFlash() {
+    await this._runTimedAction('flash', FLASH_HONK.FLASH);
+  }
+
+  async flowHorn() {
+    await this._runTimedAction('horn', FLASH_HONK.HORN);
+  }
+
+  async flowFlashAndHorn() {
+    await this._runTimedAction('flashAndHorn', FLASH_HONK.FLASH_AND_HORN);
+  }
+
+  async flowOpenTrunk() {
+    await this._runCommand(client => client.setTrunk(this.vehicleId, true), { pin: true });
+  }
+
+  async flowSetWindows({ state }) {
+    await this._runCommand(client => client.setWindows(this.vehicleId, state === 'open'), { pin: true });
+  }
+
+  async flowSetChargeLimit({ percent }) {
+    // Not supported by the S05 EV (accepted without effect); the PHEV supports it.
+    await this._runCommand(client => client.setChargeLimit(this.vehicleId, percent));
+  }
+
+  async flowWakeAndRefresh() {
+    await this.wakeAndRefresh();
+  }
+
+}
+
+module.exports = VehicleDevice;

@@ -1,0 +1,519 @@
+{
+  "_comment": "This file is generated. Please edit .homeycompose/app.json instead.",
+  "id": "com.github.deepal.alternative",
+  "version": "0.1.0",
+  "compatibility": ">=12.4.5",
+  "sdk": 3,
+  "platforms": [
+    "local"
+  ],
+  "name": {
+    "en": "Deepal"
+  },
+  "description": {
+    "en": "Battery, charging, climate and remote control for Deepal / Changan cars"
+  },
+  "category": [
+    "climate"
+  ],
+  "permissions": [],
+  "brandColor": "#1B3A5B",
+  "images": {
+    "small": "/assets/images/small.png",
+    "large": "/assets/images/large.png",
+    "xlarge": "/assets/images/xlarge.png"
+  },
+  "author": {
+    "name": "Your Name",
+    "email": "you@example.com"
+  },
+  "support": "https://github.com/YOUR_USER/homey-deepal/issues",
+  "source": "https://github.com/YOUR_USER/homey-deepal",
+  "flow": {
+    "triggers": [
+      {
+        "id": "charging_started",
+        "title": {
+          "en": "Charging started"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=vehicle"
+          }
+        ]
+      },
+      {
+        "id": "charging_stopped",
+        "title": {
+          "en": "Charging stopped"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=vehicle"
+          }
+        ]
+      }
+    ],
+    "conditions": [
+      {
+        "id": "is_charging",
+        "title": {
+          "en": "Is !{{|not}} charging"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=vehicle"
+          }
+        ]
+      },
+      {
+        "id": "is_plugged_in",
+        "title": {
+          "en": "Is !{{|not}} plugged in"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=vehicle"
+          }
+        ]
+      }
+    ],
+    "actions": [
+      {
+        "id": "climate_on",
+        "title": {
+          "en": "Start climate"
+        },
+        "titleFormatted": {
+          "en": "Start climate at [[temperature]] °C"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=vehicle"
+          },
+          {
+            "type": "number",
+            "name": "temperature",
+            "min": 16,
+            "max": 32,
+            "step": 0.5,
+            "placeholder": {
+              "en": "22"
+            }
+          }
+        ]
+      },
+      {
+        "id": "climate_off",
+        "title": {
+          "en": "Stop climate"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=vehicle"
+          }
+        ]
+      },
+      {
+        "id": "flash_lights",
+        "title": {
+          "en": "Flash the lights"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=vehicle"
+          }
+        ]
+      },
+      {
+        "id": "sound_horn",
+        "title": {
+          "en": "Sound the horn"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=vehicle"
+          }
+        ]
+      },
+      {
+        "id": "flash_and_horn",
+        "title": {
+          "en": "Flash the lights and sound the horn"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=vehicle"
+          }
+        ]
+      },
+      {
+        "id": "open_trunk",
+        "title": {
+          "en": "Open the trunk"
+        },
+        "hint": {
+          "en": "Requires the remote-control PIN."
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=vehicle"
+          }
+        ]
+      },
+      {
+        "id": "set_windows",
+        "title": {
+          "en": "Open or close the windows"
+        },
+        "titleFormatted": {
+          "en": "[[state]] the windows"
+        },
+        "hint": {
+          "en": "Requires the remote-control PIN."
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=vehicle"
+          },
+          {
+            "type": "dropdown",
+            "name": "state",
+            "values": [
+              {
+                "id": "open",
+                "label": {
+                  "en": "Open"
+                }
+              },
+              {
+                "id": "close",
+                "label": {
+                  "en": "Close"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "set_charge_limit",
+        "title": {
+          "en": "Set charge limit"
+        },
+        "titleFormatted": {
+          "en": "Set charge limit to [[percent]] %"
+        },
+        "hint": {
+          "en": "Not supported by the S05 EV (the car accepts it without effect)."
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=vehicle"
+          },
+          {
+            "type": "range",
+            "name": "percent",
+            "min": 50,
+            "max": 100,
+            "step": 5,
+            "label": " %"
+          }
+        ]
+      },
+      {
+        "id": "wake_and_refresh",
+        "title": {
+          "en": "Wake the car and refresh"
+        },
+        "hint": {
+          "en": "Wakes an S05 (at most once every 5 minutes) and waits up to 60 s for a fresh report."
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=vehicle"
+          }
+        ]
+      }
+    ]
+  },
+  "drivers": [
+    {
+      "name": {
+        "en": "Deepal vehicle"
+      },
+      "class": "car",
+      "platforms": [
+        "local"
+      ],
+      "connectivity": [
+        "cloud"
+      ],
+      "capabilities": [
+        "measure_battery",
+        "ev_charging_state",
+        "deepal_range",
+        "deepal_charge_time_remaining",
+        "measure_current",
+        "locked",
+        "deepal_climate",
+        "target_temperature",
+        "measure_temperature",
+        "measure_temperature.outside",
+        "measure_humidity",
+        "alarm_contact.doors",
+        "alarm_contact.trunk",
+        "alarm_contact.windows",
+        "deepal_odometer",
+        "deepal_last_update"
+      ],
+      "capabilitiesOptions": {
+        "target_temperature": {
+          "min": 16,
+          "max": 32,
+          "step": 0.5
+        },
+        "measure_temperature": {
+          "title": {
+            "en": "Cabin temperature"
+          }
+        },
+        "measure_temperature.outside": {
+          "title": {
+            "en": "Outside temperature"
+          }
+        },
+        "measure_humidity": {
+          "title": {
+            "en": "Cabin humidity"
+          }
+        },
+        "measure_current": {
+          "title": {
+            "en": "Charge current"
+          }
+        },
+        "locked": {
+          "title": {
+            "en": "Locked"
+          }
+        },
+        "alarm_contact.doors": {
+          "title": {
+            "en": "Doors / hood open"
+          }
+        },
+        "alarm_contact.trunk": {
+          "title": {
+            "en": "Trunk open"
+          }
+        },
+        "alarm_contact.windows": {
+          "title": {
+            "en": "Windows open"
+          }
+        }
+      },
+      "energy": {
+        "electricCar": true
+      },
+      "images": {
+        "small": "/drivers/vehicle/assets/images/small.png",
+        "large": "/drivers/vehicle/assets/images/large.png",
+        "xlarge": "/drivers/vehicle/assets/images/xlarge.png"
+      },
+      "pair": [
+        {
+          "id": "login"
+        },
+        {
+          "id": "list_devices",
+          "template": "list_devices",
+          "navigation": {
+            "next": "add_devices"
+          }
+        },
+        {
+          "id": "add_devices",
+          "template": "add_devices"
+        }
+      ],
+      "repair": [
+        {
+          "id": "login"
+        }
+      ],
+      "id": "vehicle",
+      "settings": [
+        {
+          "type": "group",
+          "label": {
+            "en": "Polling"
+          },
+          "children": [
+            {
+              "id": "poll_interval",
+              "type": "number",
+              "label": {
+                "en": "Poll interval"
+              },
+              "hint": {
+                "en": "Minutes between status reads. A normal poll never wakes the car."
+              },
+              "value": 5,
+              "min": 2,
+              "max": 120,
+              "units": {
+                "en": "min"
+              }
+            },
+            {
+              "id": "allow_wake",
+              "type": "checkbox",
+              "label": {
+                "en": "Wake the car before lock, window and trunk commands"
+              },
+              "hint": {
+                "en": "Only for MQTT cars (S05). Wakes are limited to one every 5 minutes to protect the 12 V battery."
+              },
+              "value": true
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "label": {
+            "en": "Remote control"
+          },
+          "children": [
+            {
+              "id": "control_pin",
+              "type": "password",
+              "label": {
+                "en": "Remote-control PIN"
+              },
+              "hint": {
+                "en": "The 6-digit PIN created in the My Changan app with the account Homey signs in with. Required to lock/unlock and open windows or trunk. It is verified when saved."
+              },
+              "value": ""
+            },
+            {
+              "id": "climate_runtime",
+              "type": "number",
+              "label": {
+                "en": "Climate run time"
+              },
+              "value": 30,
+              "min": 5,
+              "max": 30,
+              "units": {
+                "en": "min"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "capabilities": {
+    "deepal_charge_time_remaining": {
+      "type": "number",
+      "title": {
+        "en": "Charge time remaining"
+      },
+      "units": {
+        "en": "min"
+      },
+      "decimals": 0,
+      "getable": true,
+      "setable": false,
+      "insights": false,
+      "uiComponent": "sensor",
+      "icon": "/assets/capabilities/timer.svg"
+    },
+    "deepal_climate": {
+      "type": "boolean",
+      "title": {
+        "en": "Climate"
+      },
+      "getable": true,
+      "setable": true,
+      "insights": true,
+      "insightsTitleTrue": {
+        "en": "Climate turned on"
+      },
+      "insightsTitleFalse": {
+        "en": "Climate turned off"
+      },
+      "uiComponent": "toggle",
+      "uiQuickAction": true,
+      "icon": "/assets/capabilities/climate.svg"
+    },
+    "deepal_last_update": {
+      "type": "string",
+      "title": {
+        "en": "Last report"
+      },
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "/assets/capabilities/clock.svg"
+    },
+    "deepal_odometer": {
+      "type": "number",
+      "title": {
+        "en": "Odometer"
+      },
+      "units": {
+        "en": "km"
+      },
+      "decimals": 0,
+      "getable": true,
+      "setable": false,
+      "insights": true,
+      "uiComponent": "sensor",
+      "icon": "/assets/capabilities/odometer.svg"
+    },
+    "deepal_range": {
+      "type": "number",
+      "title": {
+        "en": "Range"
+      },
+      "units": {
+        "en": "km"
+      },
+      "decimals": 0,
+      "getable": true,
+      "setable": false,
+      "insights": true,
+      "uiComponent": "sensor",
+      "icon": "/assets/capabilities/range.svg"
+    }
+  }
+}

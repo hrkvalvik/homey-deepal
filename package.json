@@ -1,0 +1,16 @@
+{
+  "name": "com.github.deepal.alternative",
+  "version": "0.1.0",
+  "description": "Homey app for Deepal / Changan connected cars (unofficial)",
+  "main": "app.js",
+  "private": true,
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.js",
+    "validate": "homey app validate --level debug"
+  },
+  "dependencies": {}
+}
