@@ -54,6 +54,27 @@ class DeepalApp extends Homey.App {
     return this.client;
   }
 
+  // --- Dashboard widget (widgets/car/api.js) ---------------------------------------
+
+  getWidgetState() {
+    return this.homey.drivers.getDriver('vehicle').getDevices().map(device => device.getWidgetState());
+  }
+
+  /**
+   * Start a widget action and answer at once: commands can take up to a
+   * minute, longer than a widget API call should stay open. The outcome
+   * arrives as a `deepal:command` realtime event.
+   */
+  runWidgetCommand({ carId, action, value }) {
+    const device = this.homey.drivers.getDriver('vehicle').getDevices().find(d => d.vehicleId === String(carId));
+    if (!device) throw new Error('Car not found');
+    device.runWidgetAction(action, value)
+      .then(() => this.homey.api.realtime('deepal:command', { carId, action, ok: true }))
+      .catch(err => this.homey.api.realtime('deepal:command', { carId, action, ok: false, error: err.message }))
+      .catch(this.error);
+    return { accepted: true };
+  }
+
   _registerFlowCards() {
     const run = method => async (args, state) => args.device[method](args, state);
 

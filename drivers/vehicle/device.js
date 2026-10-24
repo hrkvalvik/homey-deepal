@@ -201,6 +201,8 @@ class VehicleDevice extends Homey.Device {
         timeZone: this.homey.clock.getTimezone(),
       }));
     }
+
+    this.emitWidgetState();
   }
 
   /** Add each warning light on its first report, then trigger the Flow card when one turns on. */
@@ -235,7 +237,82 @@ class VehicleDevice extends Homey.Device {
     this.error(err.message);
     if (err instanceof DeepalAuthError) {
       await this.setUnavailable(this.homey.__('errors.session_expired')).catch(this.error);
+      this.emitWidgetState();
     }
+  }
+
+  // --- Dashboard widget ------------------------------------------------------------
+
+  /** Everything the car widget draws, including the per-door detail the capabilities aggregate. */
+  getWidgetState() {
+    const value = capability => (this.hasCapability(capability) ? this.getCapabilityValue(capability) : null);
+    const condition = this.condition;
+    const tire = position => ({
+      bar: value(TIRE_CAPABILITIES[position]),
+      alarm: condition ? Boolean(condition.tires[position].alarm) : false,
+    });
+    return {
+      carId: this.vehicleId,
+      name: this.getName(),
+      available: this.getAvailable(),
+      isMqtt: this.isMqttVehicle,
+      hasPin: Boolean(this.getSetting('control_pin')),
+      lastUpdated: condition ? condition.lastUpdated : null,
+      battery: value('measure_battery'),
+      rangeKm: value('deepal_range'),
+      chargingState: value('ev_charging_state'),
+      chargeCurrentA: value('measure_current'),
+      chargeTimeRemainingMin: value('deepal_charge_time_remaining'),
+      locked: value('locked'),
+      climateOn: value('deepal_climate'),
+      targetTemperature: value('target_temperature'),
+      insideTemperature: value('measure_temperature'),
+      outsideTemperature: value('measure_temperature.outside'),
+      doors: condition ? condition.doorsOpen : null,
+      windows: condition ? condition.windowsOpen : null,
+      hoodOpen: condition ? condition.hoodOpen : null,
+      trunkOpen: value('alarm_contact.trunk'),
+      anyDoorOpen: value('alarm_contact.doors'),
+      anyWindowOpen: value('alarm_contact.windows'),
+      tires: {
+        frontLeft: tire('frontLeft'),
+        frontRight: tire('frontRight'),
+        rearLeft: tire('rearLeft'),
+        rearRight: tire('rearRight'),
+      },
+      warnings: WARNING_LIGHTS.filter(light => value(light.capability) === true).map(light => light.title),
+    };
+  }
+
+  emitWidgetState() {
+    this.homey.api.realtime('deepal:state', this.getWidgetState()).catch(err => this.error('widget realtime', err.message));
+  }
+
+  /** Run a widget action. Resolves when the car confirmed it; throws a readable error otherwise. */
+  async runWidgetAction(action, value) {
+    const setAfter = async (capability, newValue, listener) => {
+      await listener;
+      await this.setCapabilityValue(capability, newValue).catch(this.error);
+    };
+    switch (action) {
+      case 'lock': await setAfter('locked', true, this.triggerCapabilityListener('locked', true)); break;
+      case 'unlock': await setAfter('locked', false, this.triggerCapabilityListener('locked', false)); break;
+      case 'climate_on': await this.flowClimateOn({ temperature: Number(value) || this.getCapabilityValue('target_temperature') || 22 }); break;
+      case 'climate_off': await this.flowClimateOff(); break;
+      case 'set_temperature': {
+        const temperature = Math.min(32, Math.max(16, Math.round(Number(value) * 2) / 2));
+        await setAfter('target_temperature', temperature, this.triggerCapabilityListener('target_temperature', temperature));
+        break;
+      }
+      case 'flash': await this.flowFlash(); break;
+      case 'horn': await this.flowHorn(); break;
+      case 'open_trunk': await this.flowOpenTrunk(); break;
+      case 'windows_open': await this.flowSetWindows({ state: 'open' }); break;
+      case 'windows_close': await this.flowSetWindows({ state: 'close' }); break;
+      case 'refresh': await this.flowWakeAndRefresh(); break;
+      default: throw new Error(`Unknown action: ${action}`);
+    }
+    this.emitWidgetState();
   }
 
   // --- Commands --------------------------------------------------------------------

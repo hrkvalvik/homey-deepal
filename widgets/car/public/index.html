@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root {
+    --bg: var(--homey-background-color, #ffffff);
+    --text: var(--homey-text-color, #16202c);
+    --muted: #6b7686;
+    --line: rgba(22, 32, 44, 0.09);
+    --surface: rgba(22, 32, 44, 0.045);
+    --surface-press: rgba(22, 32, 44, 0.1);
+    --accent: #2f7df6;
+    --heat: #f0803c;
+    --ok: #1f9d68;
+    --warn: #e39b12;
+    --danger: #e5484d;
+    --body: #e4e8ef;
+    --body-edge: #c9d0db;
+    --glass: #a9b8cd;
+    --glass-open: #e39b12;
+    --wheel: #2b323d;
+    --radius: 14px;
+    --font: var(--homey-font-family, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not(.homey-light-mode) {
+      --bg: var(--homey-background-color, #16191f);
+      --text: var(--homey-text-color, #eef1f5);
+      --muted: #8d97a6;
+      --line: rgba(255, 255, 255, 0.08);
+      --surface: rgba(255, 255, 255, 0.06);
+      --surface-press: rgba(255, 255, 255, 0.13);
+      --body: #2c333e;
+      --body-edge: #424b59;
+      --glass: #4a5a71;
+      --wheel: #0d1014;
+    }
+  }
+  html.homey-dark-mode {
+    --bg: var(--homey-background-color, #16191f);
+    --text: var(--homey-text-color, #eef1f5);
+    --muted: #8d97a6;
+    --line: rgba(255, 255, 255, 0.08);
+    --surface: rgba(255, 255, 255, 0.06);
+    --surface-press: rgba(255, 255, 255, 0.13);
+    --body: #2c333e;
+    --body-edge: #424b59;
+    --glass: #4a5a71;
+    --wheel: #0d1014;
+  }
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text); font-family: var(--font); }
+  body { position: relative; padding: 14px 14px 12px; font-size: 13px; line-height: 1.3; user-select: none; -webkit-user-select: none; }
+  button { font: inherit; color: inherit; border: 0; background: none; padding: 0; cursor: pointer; }
+  button:disabled { cursor: default; }
+  svg { display: block; }
+
+  /* Header */
+  .header { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+  .title { min-width: 0; }
+  .name { font-size: 16px; font-weight: 650; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 4px; }
+  .name.switchable::after { content: ""; width: 6px; height: 6px; border: solid var(--muted); border-width: 0 1.5px 1.5px 0; transform: rotate(45deg) translateY(-2px); margin-left: 4px; }
+  .sub { color: var(--muted); font-size: 12px; margin-top: 2px; }
+  .refresh { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; background: var(--surface); flex: none; }
+  .refresh:active { background: var(--surface-press); }
+  .refresh svg { width: 18px; height: 18px; }
+  .refresh.busy svg { animation: spin 1s linear infinite; }
+
+  .battery { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+  .battery-value { font-size: 26px; font-weight: 700; letter-spacing: -0.5px; font-variant-numeric: tabular-nums; }
+  .battery-value small { font-size: 14px; font-weight: 600; color: var(--muted); }
+  .battery-detail { flex: 1; min-width: 0; }
+  .bar { height: 6px; border-radius: 3px; background: var(--surface-press); overflow: hidden; }
+  .bar > div { height: 100%; border-radius: 3px; background: var(--ok); transition: width .4s ease; }
+  .bar.charging > div { background-image: linear-gradient(90deg, rgba(255,255,255,0) 0, rgba(255,255,255,.45) 50%, rgba(255,255,255,0) 100%); background-size: 60px 100%; background-repeat: no-repeat; animation: shimmer 1.6s linear infinite; background-color: var(--ok); }
+  .bar.low > div { background-color: var(--danger); }
+  .battery-text { display: flex; justify-content: space-between; color: var(--muted); font-size: 12px; margin-top: 5px; gap: 6px; }
+  .battery-text .charging { color: var(--ok); font-weight: 600; }
+
+  /* Car */
+  .car-wrap { position: relative; margin: 8px auto 4px; max-width: 300px; }
+  .car-wrap > svg { width: 100%; height: auto; max-height: 230px; }
+  .part { cursor: pointer; transition: fill .25s ease, opacity .25s ease; }
+  .part:active { opacity: .7; }
+  .part.disabled { cursor: default; }
+  .tire-label { font-size: 11px; font-weight: 600; fill: var(--muted); font-variant-numeric: tabular-nums; }
+  .tire-label.alarm { fill: var(--danger); }
+  .tire-caption { font-size: 9px; fill: var(--muted); opacity: .8; }
+  .state-label { font-size: 9.5px; font-weight: 700; letter-spacing: .4px; fill: var(--warn); text-transform: uppercase; }
+  .cabin-glow { opacity: 0; transition: opacity .4s ease; }
+  .climate-on .cabin-glow { opacity: 1; animation: breathe 3s ease-in-out infinite; }
+  .lock-badge circle { transition: fill .25s ease; }
+  .pending-ring { fill: none; stroke: var(--accent); stroke-width: 2.5; stroke-dasharray: 34 104; transform-origin: center; transform-box: fill-box; animation: spin 1s linear infinite; }
+  .flash-beam { opacity: 0; }
+  .flashing .flash-beam { animation: beam 0.9s ease-in-out 3; }
+
+  .warnings { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin: 2px 0 8px; }
+  .chip { font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 99px; background: rgba(229, 72, 77, .12); color: var(--danger); }
+  .chip.info { background: rgba(227, 155, 18, .14); color: var(--warn); }
+
+  /* Climate */
+  .climate { display: flex; align-items: center; gap: 10px; padding: 8px; border-radius: var(--radius); background: var(--surface); }
+  .climate-toggle { display: flex; align-items: center; gap: 8px; padding: 6px 10px 6px 6px; border-radius: 10px; flex: 1; min-width: 0; text-align: left; }
+  .climate-toggle:active { background: var(--surface-press); }
+  .climate-icon { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; background: var(--surface-press); flex: none; transition: background .25s ease, color .25s ease; }
+  .climate-icon svg { width: 20px; height: 20px; }
+  .climate-on .climate-icon { background: var(--accent); color: #fff; }
+  .climate-on.heating .climate-icon { background: var(--heat); }
+  .climate-label { font-weight: 650; }
+  .climate-sub { color: var(--muted); font-size: 11.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .temp { display: flex; align-items: center; gap: 2px; flex: none; }
+  .temp button { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; background: var(--bg); font-size: 18px; font-weight: 500; }
+  .temp button:active { background: var(--surface-press); }
+  .temp-value { width: 52px; text-align: center; font-size: 17px; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+  /* Actions */
+  .actions { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-top: 8px; }
+  .action { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 2px 6px; border-radius: 12px; background: var(--surface); position: relative; transition: background .2s ease; }
+  .action:active:not(:disabled) { background: var(--surface-press); }
+  .action svg { width: 22px; height: 22px; }
+  .action span { font-size: 10.5px; font-weight: 600; white-space: nowrap; }
+  .action.on { color: var(--ok); }
+  .action.alert { color: var(--warn); }
+  .action.confirm { background: var(--accent); color: #fff; }
+  .action:disabled { opacity: .4; }
+  .action.pending svg { animation: pulse 1s ease-in-out infinite; }
+
+  /* Overlay and toast */
+  .overlay { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; padding: 24px; background: var(--bg); color: var(--muted); }
+  .overlay strong { display: block; color: var(--text); font-size: 15px; margin-bottom: 6px; }
+  .toast { position: fixed; left: 50%; bottom: 12px; transform: translate(-50%, 20px); opacity: 0; max-width: calc(100% - 28px); padding: 9px 14px; border-radius: 12px; background: #1d2530; color: #fff; font-size: 12.5px; font-weight: 500; text-align: center; pointer-events: none; transition: opacity .2s ease, transform .2s ease; box-shadow: 0 6px 20px rgba(0,0,0,.25); }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+  .toast.error { background: var(--danger); }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes pulse { 50% { opacity: .35; } }
+  @keyframes breathe { 50% { opacity: .55; } }
+  @keyframes beam { 0%, 100% { opacity: 0; } 40%, 60% { opacity: .9; } }
+  @keyframes shimmer { from { background-position: -60px 0; } to { background-position: calc(100% + 60px) 0; } }
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<script>
+  'use strict';
+
+  // Actions that move something on the car ask for a second tap.
+  const CONFIRM = {
+    unlock: 'Tap again to unlock',
+    open_trunk: 'Tap again to open the trunk',
+    windows_open: 'Tap again to open the windows',
+    windows_close: 'Tap again to close the windows',
+  };
+  const PIN_ACTIONS = new Set(['lock', 'unlock', 'open_trunk', 'windows_open', 'windows_close']);
+  const DONE = {
+    lock: 'Locked', unlock: 'Unlocked', climate_on: 'Climate started', climate_off: 'Climate stopped',
+    set_temperature: 'Temperature set', flash: 'Lights flashed', horn: 'Horn sounded', open_trunk: 'Trunk opened',
+    windows_open: 'Windows opened', windows_close: 'Windows closed', refresh: 'Updated',
+  };
+  const COMMAND_TIMEOUT_MS = 120000;
+
+  const ICONS = {
+    lock: '<path d="M7 10V7a5 5 0 0 1 10 0v3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><rect x="5" y="10" width="14" height="11" rx="2.5" fill="currentColor"/>',
+    unlock: '<path d="M7 10V7a5 5 0 0 1 9.6-1.9" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><rect x="5" y="10" width="14" height="11" rx="2.5" fill="currentColor"/>',
+    flash: '<path d="M9 7.5a4.5 4.5 0 0 0 0 9h1.5v-9z" fill="currentColor"/><path d="M14 8h6M14 12h7M14 16h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',
+    horn: '<path d="M4 10v4h3l6 4V6L7 10z" fill="currentColor"/><path d="M16.5 9a4 4 0 0 1 0 6M19 6.5a7.5 7.5 0 0 1 0 11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',
+    trunk: '<path d="M4 15h16v3a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z" fill="currentColor"/><path d="M5 13l3-8h8l3 8" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M12 7v4m-2-2 2 2 2-2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>',
+    window: '<path d="M5 20V9l6-5h8v16z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M7 12h10" stroke="currentColor" stroke-width="2"/><path d="M12 15.5v3m-1.6-1.4L12 18.5l1.6-1.4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>',
+    fan: '<circle cx="12" cy="12" r="2" fill="currentColor"/><path d="M12 10c0-3 .5-6 3-6s2.5 3 0 4.5zM14 12c3 0 6 .5 6 3s-3 2.5-4.5 0zM12 14c0 3-.5 6-3 6s-2.5-3 0-4.5zM10 12c-3 0-6-.5-6-3s3-2.5 4.5 0z" fill="currentColor"/>',
+    refresh: '<path d="M20 12a8 8 0 1 1-2.3-5.6M20 4v4.5h-4.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>',
+    bolt: '<path d="M13 2 5 13.5h6L10 22l8-11.5h-6z" fill="currentColor"/>',
+  };
+  const icon = name => `<svg viewBox="0 0 24 24" aria-hidden="true">${ICONS[name]}</svg>`;
+
+  let Homey = null;
+  let cars = [];
+  let selectedId = null;
+  let localTemp = null;
+  let tempTimer = null;
+  let confirm = null;
+  let flashing = false;
+  const pending = new Map(); // `${carId}:${action}` -> timeout id
+
+  // --- Data ----------------------------------------------------------------------
+
+  async function load() {
+    try {
+      cars = await Homey.api('GET', '/state');
+      if (!cars.some(car => car.carId === selectedId)) selectedId = cars.length ? cars[0].carId : null;
+      render();
+    } catch (err) {
+      showToast(err.message || String(err), true);
+    }
+  }
+
+  function car() {
+    return cars.find(c => c.carId === selectedId) || null;
+  }
+
+  function isPending(action) {
+    return pending.has(`${selectedId}:${action}`);
+  }
+
+  function anyPending() {
+    for (const key of pending.keys()) if (key.startsWith(`${selectedId}:`)) return true;
+    return false;
+  }
+
+  // --- Commands -------------------------------------------------------------------
+
+  async function run(action, value) {
+    const current = car();
+    if (!current || !current.available) return;
+    if (PIN_ACTIONS.has(action) && !current.hasPin) {
+      showToast('Set the remote-control PIN in the device settings first', true);
+      return;
+    }
+    if (CONFIRM[action] && !(confirm && confirm.action === action && Date.now() < confirm.until)) {
+      confirm = { action, until: Date.now() + 3000 };
+      showToast(CONFIRM[action]);
+      render();
+      setTimeout(() => { if (confirm && confirm.action === action && Date.now() >= confirm.until) { confirm = null; render(); } }, 3100);
+      return;
+    }
+    confirm = null;
+    if (anyPending() && action !== 'set_temperature') {
+      showToast('Wait for the current command to finish');
+      return;
+    }
+    try { Homey.hapticFeedback(); } catch (err) { /* only allowed right after a touch */ }
+
+    const key = `${current.carId}:${action}`;
+    pending.set(key, setTimeout(() => {
+      pending.delete(key);
+      render();
+    }, COMMAND_TIMEOUT_MS));
+    if (action === 'flash') flashing = true;
+    render();
+    try {
+      await Homey.api('POST', '/command', { carId: current.carId, action, value });
+    } catch (err) {
+      finish({ carId: current.carId, action, ok: false, error: err.message || String(err) });
+    }
+  }
+
+  function finish({ carId, action, ok, error }) {
+    const key = `${carId}:${action}`;
+    clearTimeout(pending.get(key));
+    pending.delete(key);
+    if (action === 'flash') flashing = false;
+    if (action === 'set_temperature') localTemp = null;
+    if (carId === selectedId) showToast(ok ? DONE[action] || 'Done' : error || 'Command failed', !ok);
+    render();
+  }
+
+  function stepTemperature(delta) {
+    const current = car();
+    if (!current || !current.available) return;
+    const base = localTemp != null ? localTemp : (current.targetTemperature || 22);
+    localTemp = Math.min(32, Math.max(16, base + delta));
+    render();
+    clearTimeout(tempTimer);
+    // Wait until the user stops tapping; then one command.
+    tempTimer = setTimeout(() => run('set_temperature', localTemp), 1500);
+  }
+
+  // --- Rendering -------------------------------------------------------------------
+
+  function ago(seconds) {
+    if (!seconds) return 'No report yet';
+    const minutes = Math.round((Date.now() / 1000 - seconds) / 60);
+    if (minutes < 1) return 'Updated just now';
+    if (minutes < 60) return `Updated ${minutes} min ago`;
+    const hours = Math.round(minutes / 60);
+    if (hours < 24) return `Updated ${hours} h ago`;
+    return `Updated ${Math.round(hours / 24)} d ago`;
+  }
+
+  function duration(minutes) {
+    if (minutes == null) return '';
+    const h = Math.floor(minutes / 60);
+    const m = minutes % 60;
+    return h ? `${h} h ${m} min` : `${m} min`;
+  }
+
+  const fmt = (value, unit, digits = 0) => (value == null ? '–' : `${Number(value).toFixed(digits)}${unit}`);
+
+  function carSvg(c) {
+    const doors = c.doors || {};
+    const windows = c.windows || {};
+    const locked = c.locked;
+    const busyLock = isPending('lock') || isPending('unlock');
+    const confirmUnlock = confirm && confirm.action === 'unlock';
+    const lockFill = confirmUnlock ? 'var(--accent)' : locked === false ? 'var(--warn)' : 'var(--text)';
+    const lockAction = locked === false ? 'lock' : 'unlock';
+    const doorFill = open => (open ? 'var(--warn)' : 'var(--body)');
+    const glassFill = open => (open ? 'var(--glass-open)' : 'var(--glass)');
+    const windowsAction = c.anyWindowOpen ? 'windows_close' : 'windows_open';
+    const heating = c.targetTemperature != null && c.insideTemperature != null && c.targetTemperature > c.insideTemperature;
+    const glow = heating ? 'var(--heat)' : 'var(--accent)';
+    const tire = (t, x, y, anchor) => {
+      const alarm = t && t.alarm;
+      return `<text class="tire-label${alarm ? ' alarm' : ''}" x="${x}" y="${y}" text-anchor="${anchor}">${t && t.bar != null ? `${t.bar.toFixed(1)} bar` : '–'}</text>`;
+    };
+    // An open door is drawn swung out from its front hinge.
+    const openDoor = (side, top, length) => {
+      const x = side === 'left' ? 84 : 210;
+      const hinge = side === 'left' ? 90 : 210;
+      const angle = side === 'left' ? 32 : -32;
+      return `<rect x="${x}" y="${top}" width="6" height="${length}" rx="3" fill="var(--warn)" transform="rotate(${angle} ${hinge} ${top})"/>`;
+    };
+
+    return `
+    <svg viewBox="0 0 300 330" class="${c.climateOn ? 'climate-on' : ''} ${flashing ? 'flashing' : ''}" role="img" aria-label="Car, top view">
+      <defs>
+        <radialGradient id="glow" cx="50%" cy="50%" r="60%">
+          <stop offset="0%" stop-color="${glow}" stop-opacity=".55"/>
+          <stop offset="100%" stop-color="${glow}" stop-opacity="0"/>
+        </radialGradient>
+        <linearGradient id="beam" x1="0" y1="1" x2="0" y2="0">
+          <stop offset="0%" stop-color="#ffe8a3" stop-opacity=".9"/>
+          <stop offset="100%" stop-color="#ffe8a3" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+
+      <!-- headlight beams (shown while flashing) -->
+      <path class="flash-beam" d="M98 22 L70 -10 L130 -10 L118 22 Z" fill="url(#beam)"/>
+      <path class="flash-beam" d="M182 22 L170 -10 L230 -10 L202 22 Z" fill="url(#beam)"/>
+
+      <!-- wheels -->
+      <rect x="80" y="52" width="13" height="48" rx="5" fill="var(--wheel)"/>
+      <rect x="207" y="52" width="13" height="48" rx="5" fill="var(--wheel)"/>
+      <rect x="80" y="222" width="13" height="48" rx="5" fill="var(--wheel)"/>
+      <rect x="207" y="222" width="13" height="48" rx="5" fill="var(--wheel)"/>
+
+      <!-- body -->
+      <path d="M112 14 C96 14 90 30 90 52 L90 282 C90 304 99 316 120 316 L180 316 C201 316 210 304 210 282 L210 52 C210 30 204 14 188 14 Z" fill="var(--body)" stroke="var(--body-edge)" stroke-width="1.5"/>
+
+      <!-- hood -->
+      <path d="M112 14 C96 14 90 30 90 52 L90 96 L210 96 L210 52 C210 30 204 14 188 14 Z" fill="${c.hoodOpen ? 'var(--warn)' : 'var(--body)'}" stroke="var(--body-edge)" stroke-width="1"/>
+      <!-- headlights: tap to flash -->
+      <g class="part" data-action="flash" role="button" aria-label="Flash the lights">
+        <path d="M100 30 Q104 20 118 19 L114 30 Z" fill="${flashing ? '#ffd65a' : 'var(--glass)'}"/>
+        <path d="M200 30 Q196 20 182 19 L186 30 Z" fill="${flashing ? '#ffd65a' : 'var(--glass)'}"/>
+        <rect x="96" y="14" width="108" height="26" fill="transparent"/>
+      </g>
+
+      <!-- doors: tap to lock / unlock -->
+      <g class="part" data-action="${lockAction}" role="button" aria-label="${locked === false ? 'Lock' : 'Unlock'} the car">
+        <rect x="90" y="100" width="17" height="80" rx="3" fill="${doorFill(doors.driver)}" stroke="var(--body-edge)"/>
+        <rect x="90" y="182" width="17" height="76" rx="3" fill="${doorFill(doors.rearLeft)}" stroke="var(--body-edge)"/>
+        <rect x="193" y="100" width="17" height="80" rx="3" fill="${doorFill(doors.passenger)}" stroke="var(--body-edge)"/>
+        <rect x="193" y="182" width="17" height="76" rx="3" fill="${doorFill(doors.rearRight)}" stroke="var(--body-edge)"/>
+      </g>
+      ${doors.driver ? openDoor('left', 100, 76) : ''}
+      ${doors.rearLeft ? openDoor('left', 182, 72) : ''}
+      ${doors.passenger ? openDoor('right', 100, 76) : ''}
+      ${doors.rearRight ? openDoor('right', 182, 72) : ''}
+
+      <!-- side windows: tap to open / close all windows -->
+      <g class="part" data-action="${windowsAction}" role="button" aria-label="${c.anyWindowOpen ? 'Close' : 'Open'} the windows">
+        <rect x="101" y="108" width="7" height="66" rx="3" fill="${glassFill(windows.frontLeft)}"/>
+        <rect x="101" y="188" width="7" height="62" rx="3" fill="${glassFill(windows.rearLeft)}"/>
+        <rect x="192" y="108" width="7" height="66" rx="3" fill="${glassFill(windows.frontRight)}"/>
+        <rect x="192" y="188" width="7" height="62" rx="3" fill="${glassFill(windows.rearRight)}"/>
+      </g>
+
+      <!-- glass and roof -->
+      <path d="M104 100 L196 100 L189 132 L111 132 Z" fill="var(--glass)"/>
+      <rect x="111" y="134" width="78" height="96" rx="8" fill="var(--body)" stroke="var(--body-edge)"/>
+      <rect class="cabin-glow" x="104" y="104" width="92" height="152" rx="20" fill="url(#glow)"/>
+      <path d="M111 232 L189 232 L196 258 L104 258 Z" fill="var(--glass)"/>
+
+      <!-- roof lock badge: tap to lock / unlock -->
+      <g class="part lock-badge" data-action="${lockAction}" role="button" aria-label="${locked === false ? 'Lock' : 'Unlock'} the car">
+        <circle cx="150" cy="182" r="22" fill="${lockFill}" opacity="${locked == null ? .35 : 1}"/>
+        ${busyLock ? '<circle class="pending-ring" cx="150" cy="182" r="26"/>' : ''}
+        <g transform="translate(138 170)" style="color: var(--bg)"><svg width="24" height="24" viewBox="0 0 24 24">${locked === false ? ICONS.unlock : ICONS.lock}</svg></g>
+      </g>
+
+      <!-- trunk: tap to open -->
+      <g class="part" data-action="open_trunk" role="button" aria-label="Open the trunk">
+        <path d="M90 262 L210 262 L210 282 C210 304 201 316 180 316 L120 316 C99 316 90 304 90 282 Z" fill="${c.trunkOpen ? 'var(--warn)' : 'var(--body)'}" stroke="var(--body-edge)"/>
+        <path d="M104 306 Q112 300 120 302 M196 306 Q188 300 180 302" stroke="var(--danger)" stroke-width="3" stroke-linecap="round" fill="none" opacity=".75"/>
+        ${isPending('open_trunk') ? '<circle class="pending-ring" cx="150" cy="289" r="12"/>' : ''}
+      </g>
+
+      ${c.trunkOpen ? '<text class="state-label" x="150" y="292" text-anchor="middle" style="fill:#fff">Open</text>' : ''}
+      ${c.hoodOpen ? '<text class="state-label" x="150" y="60" text-anchor="middle" style="fill:#fff">Hood open</text>' : ''}
+
+      <!-- charge port -->
+      ${c.chargingState && c.chargingState !== 'plugged_out' ? `
+        <path d="M210 276 C232 276 236 296 250 300" fill="none" stroke="${c.chargingState === 'plugged_in_charging' ? 'var(--ok)' : 'var(--muted)'}" stroke-width="3" stroke-linecap="round"/>
+        <circle cx="258" cy="302" r="13" fill="${c.chargingState === 'plugged_in_charging' ? 'var(--ok)' : 'var(--muted)'}"/>
+        <g transform="translate(250 294)" style="color:#fff"><svg width="16" height="16" viewBox="0 0 24 24">${ICONS.bolt}</svg></g>` : ''}
+
+      <!-- tire pressures -->
+      ${tire(c.tires.frontLeft, 72, 80, 'end')}
+      ${tire(c.tires.frontRight, 228, 80, 'start')}
+      ${tire(c.tires.rearLeft, 72, 250, 'end')}
+      ${tire(c.tires.rearRight, 228, 250, 'start')}
+    </svg>`;
+  }
+
+  function render() {
+    const app = document.getElementById('app');
+    const c = car();
+    if (!c) {
+      app.innerHTML = '<div style="position:relative;height:420px"><div class="overlay"><div><strong>No car yet</strong>Add your car under Devices → + → Deepal.</div></div></div>';
+      return;
+    }
+
+    const temp = localTemp != null ? localTemp : (c.targetTemperature || 22);
+    const heating = c.insideTemperature != null && temp > c.insideTemperature;
+    const charging = c.chargingState === 'plugged_in_charging';
+    const plugged = c.chargingState === 'plugged_in';
+    const low = c.battery != null && c.battery <= 20;
+    const busy = anyPending();
+    const lockAction = c.locked === false ? 'lock' : 'unlock';
+    const windowsAction = c.anyWindowOpen ? 'windows_close' : 'windows_open';
+
+    let chargeText = `${fmt(c.rangeKm, ' km')} range`;
+    let chargeClass = '';
+    if (charging) {
+      chargeClass = 'charging';
+      chargeText = ['Charging', c.chargeCurrentA ? `${Math.round(c.chargeCurrentA)} A` : null,
+        c.chargeTimeRemainingMin != null ? `${duration(c.chargeTimeRemainingMin)} left` : null].filter(Boolean).join(' · ');
+    } else if (plugged) {
+      chargeText = 'Plugged in';
+    }
+
+    const chips = [...c.warnings.map(w => `<span class="chip">${w}</span>`)];
+    if (c.anyDoorOpen) chips.push('<span class="chip info">Door open</span>');
+    if (c.anyWindowOpen) chips.push('<span class="chip info">Window open</span>');
+
+    const action = (name, label, iconName, extra = '') => {
+      const classes = ['action', extra];
+      if (confirm && confirm.action === name) classes.push('confirm');
+      if (isPending(name)) classes.push('pending');
+      const disabled = !c.available || (busy && !isPending(name));
+      return `<button class="${classes.join(' ')}" data-action="${name}" ${disabled ? 'disabled' : ''} aria-label="${label}">${icon(iconName)}<span>${label}</span></button>`;
+    };
+
+    app.innerHTML = `
+      <div class="header">
+        <div class="title">
+          <button class="name ${cars.length > 1 ? 'switchable' : ''}" data-switch>${escapeHtml(c.name)}</button>
+          <div class="sub">${c.available ? ago(c.lastUpdated) : 'Unavailable'}</div>
+        </div>
+        <button class="refresh ${isPending('refresh') ? 'busy' : ''}" data-action="refresh" aria-label="Wake the car and refresh" ${!c.available || busy ? 'disabled' : ''}>${icon('refresh')}</button>
+      </div>
+
+      <div class="battery">
+        <div class="battery-value">${c.battery == null ? '–' : c.battery}<small>%</small></div>
+        <div class="battery-detail">
+          <div class="bar ${charging ? 'charging' : ''} ${low ? 'low' : ''}"><div style="width:${c.battery || 0}%"></div></div>
+          <div class="battery-text"><span class="${chargeClass}">${chargeText}</span><span>${charging || plugged ? fmt(c.rangeKm, ' km') : ''}</span></div>
+        </div>
+      </div>
+
+      <div class="car-wrap">${carSvg(c)}</div>
+      ${chips.length ? `<div class="warnings">${chips.join('')}</div>` : ''}
+
+      <div class="climate ${c.climateOn ? 'climate-on' : ''} ${heating ? 'heating' : ''}">
+        <button class="climate-toggle" data-action="${c.climateOn ? 'climate_off' : 'climate_on'}" ${!c.available || (busy && !isPending('climate_on') && !isPending('climate_off')) ? 'disabled' : ''}>
+          <span class="climate-icon">${icon('fan')}</span>
+          <span style="min-width:0">
+            <div class="climate-label">${isPending('climate_on') ? 'Starting…' : isPending('climate_off') ? 'Stopping…' : c.climateOn ? (heating ? 'Heating' : 'Cooling') : 'Climate off'}</div>
+            <div class="climate-sub">In ${fmt(c.insideTemperature, '°', 0)} · Out ${fmt(c.outsideTemperature, '°', 0)}</div>
+          </span>
+        </button>
+        <div class="temp">
+          <button data-temp="-0.5" aria-label="Lower temperature" ${!c.available ? 'disabled' : ''}>−</button>
+          <div class="temp-value">${temp.toFixed(1)}°</div>
+          <button data-temp="0.5" aria-label="Raise temperature" ${!c.available ? 'disabled' : ''}>+</button>
+        </div>
+      </div>
+
+      <div class="actions">
+        ${action(lockAction, c.locked === false ? 'Lock' : 'Unlock', c.locked === false ? 'lock' : 'unlock', c.locked === false ? 'alert' : '')}
+        ${action('flash', 'Flash', 'flash')}
+        ${action('horn', 'Horn', 'horn')}
+        ${action('open_trunk', 'Trunk', 'trunk', c.trunkOpen ? 'alert' : '')}
+        ${action(windowsAction, c.anyWindowOpen ? 'Close' : 'Windows', 'window', c.anyWindowOpen ? 'alert' : '')}
+      </div>
+
+      ${c.available ? '' : `<div class="overlay" style="top:58px"><div><strong>Car unavailable</strong>The My Changan login expired or was signed out. Open the device and choose Repair to log in again.</div></div>`}
+    `;
+    syncHeight();
+  }
+
+  // Warning chips add a row; let the dashboard tile follow the content.
+  let lastHeight = null;
+  function syncHeight() {
+    const height = document.body.scrollHeight;
+    if (!Homey || height === lastHeight) return;
+    lastHeight = height;
+    Homey.setHeight(height).catch(() => {});
+  }
+
+  function escapeHtml(text) {
+    return String(text).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+  }
+
+  let toastTimer = null;
+  function showToast(message, isError = false) {
+    const toast = document.getElementById('toast');
+    toast.textContent = message;
+    toast.className = `toast show${isError ? ' error' : ''}`;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { toast.className = 'toast'; }, isError ? 4500 : 2200);
+  }
+
+  // --- Events --------------------------------------------------------------------
+
+  document.addEventListener('click', event => {
+    const target = event.target.closest('[data-action], [data-temp], [data-switch]');
+    if (!target || target.disabled) return;
+    if (target.hasAttribute('data-switch')) {
+      if (cars.length < 2) return;
+      const index = cars.findIndex(c => c.carId === selectedId);
+      selectedId = cars[(index + 1) % cars.length].carId;
+      localTemp = null;
+      remember();
+      render();
+      return;
+    }
+    if (target.hasAttribute('data-temp')) {
+      stepTemperature(Number(target.getAttribute('data-temp')));
+      return;
+    }
+    const current = car();
+    if (current && current.available && busyBlocks(target.getAttribute('data-action'))) {
+      showToast('Wait for the current command to finish');
+      return;
+    }
+    run(target.getAttribute('data-action'), target.getAttribute('data-action') === 'climate_on' ? (localTemp != null ? localTemp : current && current.targetTemperature) : undefined);
+  });
+
+  function busyBlocks(action) {
+    return anyPending() && !isPending(action) && !CONFIRM[action];
+  }
+
+  function remember() {
+    try { localStorage.setItem(`deepal-car-${Homey.getWidgetInstanceId()}`, selectedId); } catch (err) { /* optional */ }
+  }
+
+  function recall() {
+    try { return localStorage.getItem(`deepal-car-${Homey.getWidgetInstanceId()}`); } catch (err) { return null; }
+  }
+
+  // Homey calls this once the widget may talk to the app.
+  function onHomeyReady(homey) {
+    Homey = homey;
+    selectedId = recall();
+    Homey.on('deepal:state', state => {
+      const index = cars.findIndex(c => c.carId === state.carId);
+      if (index === -1) cars.push(state); else cars[index] = state;
+      render();
+    });
+    Homey.on('deepal:command', finish);
+    load().then(() => {
+      lastHeight = document.body.scrollHeight;
+      Homey.ready({ height: lastHeight });
+    });
+    setInterval(load, 60000);
+    // Keep "updated x min ago" current between reports.
+    setInterval(render, 30000);
+  }
+  window.onHomeyReady = onHomeyReady;
+</script>
+</body>
+</html>

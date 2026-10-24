@@ -31,6 +31,19 @@ international My Changan cloud. It is a Node.js port of the protocol reverse-eng
 Data sources: S05 (`protocolType: MQTT`) is read over the CA MQTT broker, falling back to the REST
 snapshot. Other cars use the REST condition endpoint.
 
+## Dashboard widget
+
+Add it on a Homey dashboard: *Dashboards → Edit → + → Deepal → Deepal car*.
+
+- Top-down view of the car showing doors, windows, trunk, hood, tire pressures, the charging
+  cable and climate (the cabin glows blue or orange).
+- Tap the car: doors or the roof badge lock/unlock, headlights flash, side windows open/close, trunk
+  opens. Unlock, trunk and windows ask for a second tap.
+- Climate on/off and temperature −/+ (one command after you stop tapping), plus Lock, Flash, Horn,
+  Trunk and Windows buttons, and a wake-and-refresh button.
+- Updates live when the car reports; the result of each command appears as a short message.
+- With several cars, tap the name to switch.
+
 ## Project layout
 
 ```
@@ -41,6 +54,7 @@ lib/crypto.js               RSA request encryption, login keypair, command signi
 lib/condition.js            Condition parsing and S05 parameter normalization
 drivers/vehicle/            Driver (pairing), device (polling, commands), settings, Flow cards
 drivers/vehicle/pair/login.html   Two-step email/SMS code login view
+widgets/car/                Dashboard widget: public/index.html (UI), api.js (state + commands)
 .homeycompose/              App manifest and custom capabilities (app.json is generated from these)
 test/                       Offline tests (node --test)
 ```

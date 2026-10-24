@@ -499,6 +499,27 @@
       ]
     }
   ],
+  "widgets": {
+    "car": {
+      "name": {
+        "en": "Deepal car"
+      },
+      "height": 480,
+      "transparent": false,
+      "api": {
+        "getState": {
+          "method": "GET",
+          "path": "/state"
+        },
+        "command": {
+          "method": "POST",
+          "path": "/command"
+        }
+      },
+      "id": "car",
+      "settings": []
+    }
+  },
   "capabilities": {
     "deepal_charge_time_remaining": {
       "type": "number",
