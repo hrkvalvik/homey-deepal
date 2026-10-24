@@ -1,6 +1,6 @@
 {
   "name": "com.github.deepal.alternative",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Homey app for Deepal / Changan connected cars (unofficial)",
   "main": "app.js",
   "private": true,

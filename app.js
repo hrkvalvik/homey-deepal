@@ -87,6 +87,8 @@ class DeepalApp extends Homey.App {
     this.homey.flow.getActionCard('set_windows').registerRunListener(run('flowSetWindows'));
     this.homey.flow.getActionCard('set_charge_limit').registerRunListener(run('flowSetChargeLimit'));
     this.homey.flow.getActionCard('wake_and_refresh').registerRunListener(run('flowWakeAndRefresh'));
+    this.homey.flow.getActionCard('set_seat_heat').registerRunListener(run('flowSetSeatHeat'));
+    this.homey.flow.getActionCard('set_steering_wheel_heat').registerRunListener(run('flowSetSteeringWheelHeat'));
 
     this.homey.flow.getConditionCard('is_charging').registerRunListener(async args => args.device.getCapabilityValue('ev_charging_state') === 'plugged_in_charging');
     this.homey.flow.getConditionCard('is_plugged_in').registerRunListener(async args => {

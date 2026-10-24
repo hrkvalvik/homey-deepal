@@ -1,0 +1,14 @@
+{
+  "type": "enum",
+  "title": { "en": "Seat heating", "no": "Setevarme" },
+  "values": [
+    { "id": "0", "title": { "en": "Off", "no": "Av" } },
+    { "id": "1", "title": { "en": "Level 1", "no": "Nivå 1" } },
+    { "id": "2", "title": { "en": "Level 2", "no": "Nivå 2" } },
+    { "id": "3", "title": { "en": "Level 3", "no": "Nivå 3" } }
+  ],
+  "getable": true,
+  "setable": true,
+  "uiComponent": "picker",
+  "icon": "/assets/capabilities/seat-heat.svg"
+}

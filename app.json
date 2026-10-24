@@ -1,7 +1,7 @@
 {
   "_comment": "This file is generated. Please edit .homeycompose/app.json instead.",
   "id": "com.github.deepal.alternative",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "compatibility": ">=12.4.5",
   "sdk": 3,
   "platforms": [
@@ -288,6 +288,123 @@
             "filter": "driver_id=vehicle"
           }
         ]
+      },
+      {
+        "id": "set_seat_heat",
+        "title": {
+          "en": "Set seat heating",
+          "no": "Sett setevarme"
+        },
+        "titleFormatted": {
+          "en": "Set [[seat]] seat heating to [[level]]",
+          "no": "Sett setevarme for [[seat]] til [[level]]"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=vehicle"
+          },
+          {
+            "type": "dropdown",
+            "name": "seat",
+            "values": [
+              {
+                "id": "driver",
+                "label": {
+                  "en": "driver",
+                  "no": "fører"
+                }
+              },
+              {
+                "id": "passenger",
+                "label": {
+                  "en": "passenger",
+                  "no": "passasjer"
+                }
+              },
+              {
+                "id": "both",
+                "label": {
+                  "en": "both front",
+                  "no": "begge foran"
+                }
+              }
+            ]
+          },
+          {
+            "type": "dropdown",
+            "name": "level",
+            "values": [
+              {
+                "id": "0",
+                "label": {
+                  "en": "Off",
+                  "no": "Av"
+                }
+              },
+              {
+                "id": "1",
+                "label": {
+                  "en": "Level 1",
+                  "no": "Nivå 1"
+                }
+              },
+              {
+                "id": "2",
+                "label": {
+                  "en": "Level 2",
+                  "no": "Nivå 2"
+                }
+              },
+              {
+                "id": "3",
+                "label": {
+                  "en": "Level 3",
+                  "no": "Nivå 3"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "set_steering_wheel_heat",
+        "title": {
+          "en": "Turn steering wheel heating on or off",
+          "no": "Slå rattvarme av eller på"
+        },
+        "titleFormatted": {
+          "en": "Turn steering wheel heating [[state]]",
+          "no": "Slå rattvarme [[state]]"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=vehicle"
+          },
+          {
+            "type": "dropdown",
+            "name": "state",
+            "values": [
+              {
+                "id": "on",
+                "label": {
+                  "en": "on",
+                  "no": "på"
+                }
+              },
+              {
+                "id": "off",
+                "label": {
+                  "en": "off",
+                  "no": "av"
+                }
+              }
+            ]
+          }
+        ]
       }
     ]
   },
@@ -312,6 +429,9 @@
         "locked",
         "deepal_climate",
         "target_temperature",
+        "deepal_seat_heat.driver",
+        "deepal_seat_heat.passenger",
+        "deepal_steering_wheel_heat",
         "measure_temperature",
         "measure_temperature.outside",
         "measure_humidity",
@@ -395,6 +515,18 @@
         "alarm_generic.tire_pressure": {
           "title": {
             "en": "Tire pressure warning"
+          }
+        },
+        "deepal_seat_heat.driver": {
+          "title": {
+            "en": "Driver seat heating",
+            "no": "Setevarme fører"
+          }
+        },
+        "deepal_seat_heat.passenger": {
+          "title": {
+            "en": "Passenger seat heating",
+            "no": "Setevarme passasjer"
           }
         }
       },
@@ -593,6 +725,67 @@
       "insights": true,
       "uiComponent": "sensor",
       "icon": "/assets/capabilities/range.svg"
+    },
+    "deepal_seat_heat": {
+      "type": "enum",
+      "title": {
+        "en": "Seat heating",
+        "no": "Setevarme"
+      },
+      "values": [
+        {
+          "id": "0",
+          "title": {
+            "en": "Off",
+            "no": "Av"
+          }
+        },
+        {
+          "id": "1",
+          "title": {
+            "en": "Level 1",
+            "no": "Nivå 1"
+          }
+        },
+        {
+          "id": "2",
+          "title": {
+            "en": "Level 2",
+            "no": "Nivå 2"
+          }
+        },
+        {
+          "id": "3",
+          "title": {
+            "en": "Level 3",
+            "no": "Nivå 3"
+          }
+        }
+      ],
+      "getable": true,
+      "setable": true,
+      "uiComponent": "picker",
+      "icon": "/assets/capabilities/seat-heat.svg"
+    },
+    "deepal_steering_wheel_heat": {
+      "type": "boolean",
+      "title": {
+        "en": "Steering wheel heating",
+        "no": "Rattvarme"
+      },
+      "getable": true,
+      "setable": true,
+      "insights": true,
+      "insightsTitleTrue": {
+        "en": "Steering wheel heating on",
+        "no": "Rattvarme på"
+      },
+      "insightsTitleFalse": {
+        "en": "Steering wheel heating off",
+        "no": "Rattvarme av"
+      },
+      "uiComponent": "toggle",
+      "icon": "/assets/capabilities/steering-wheel.svg"
     },
     "deepal_tire_pressure": {
       "type": "number",

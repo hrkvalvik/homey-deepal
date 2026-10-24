@@ -1,0 +1,11 @@
+{
+  "type": "boolean",
+  "title": { "en": "Steering wheel heating", "no": "Rattvarme" },
+  "getable": true,
+  "setable": true,
+  "insights": true,
+  "insightsTitleTrue": { "en": "Steering wheel heating on", "no": "Rattvarme på" },
+  "insightsTitleFalse": { "en": "Steering wheel heating off", "no": "Rattvarme av" },
+  "uiComponent": "toggle",
+  "icon": "/assets/capabilities/steering-wheel.svg"
+}

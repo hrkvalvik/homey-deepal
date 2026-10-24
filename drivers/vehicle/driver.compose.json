@@ -18,6 +18,9 @@
     "locked",
     "deepal_climate",
     "target_temperature",
+    "deepal_seat_heat.driver",
+    "deepal_seat_heat.passenger",
+    "deepal_steering_wheel_heat",
     "measure_temperature",
     "measure_temperature.outside",
     "measure_humidity",
@@ -101,6 +104,18 @@
     "alarm_generic.tire_pressure": {
       "title": {
         "en": "Tire pressure warning"
+      }
+    },
+    "deepal_seat_heat.driver": {
+      "title": {
+        "en": "Driver seat heating",
+        "no": "Setevarme fører"
+      }
+    },
+    "deepal_seat_heat.passenger": {
+      "title": {
+        "en": "Passenger seat heating",
+        "no": "Setevarme passasjer"
       }
     }
   },

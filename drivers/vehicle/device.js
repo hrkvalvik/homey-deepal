@@ -21,6 +21,11 @@ const TIRE_CAPABILITIES = {
   rearRight: 'deepal_tire_pressure.rear_right',
 };
 const TIRE_ALARM_CAPABILITY = 'alarm_generic.tire_pressure';
+const SEAT_CAPABILITIES = { driver: 'deepal_seat_heat.driver', passenger: 'deepal_seat_heat.passenger' };
+const STEERING_CAPABILITY = 'deepal_steering_wheel_heat';
+// After a confirmed change the car can keep reporting the old value for a while;
+// reports that disagree are ignored for this long.
+const COMMAND_HOLD_MS = 3 * 60 * 1000;
 
 // Only S05 (MQTT) cars report these, so they are added the first time a value arrives.
 const WARNING_LIGHTS = [
@@ -42,11 +47,16 @@ class VehicleDevice extends Homey.Device {
     this.lastWakeAt = 0;
     this.lastActionAt = {};
     this.polling = false;
+    this.holds = {};
 
-    // Cars paired with an older version lack the tire capabilities.
-    for (const capability of [...Object.values(TIRE_CAPABILITIES), TIRE_ALARM_CAPABILITY]) {
+    // Cars paired with an older version lack these capabilities.
+    for (const capability of [
+      ...Object.values(TIRE_CAPABILITIES), TIRE_ALARM_CAPABILITY, ...Object.values(SEAT_CAPABILITIES), STEERING_CAPABILITY,
+    ]) {
       if (!this.hasCapability(capability)) await this.addCapability(capability).catch(this.error);
     }
+    await this.setCapabilityOptions(SEAT_CAPABILITIES.driver, { title: { en: 'Driver seat heating', no: 'Setevarme fører' } }).catch(this.error);
+    await this.setCapabilityOptions(SEAT_CAPABILITIES.passenger, { title: { en: 'Passenger seat heating', no: 'Setevarme passasjer' } }).catch(this.error);
     this.warningLightTrigger = this.homey.flow.getDeviceTriggerCard('warning_light_on');
 
     this.registerCapabilityListener('locked', value => this._runCommand(
@@ -56,6 +66,9 @@ class VehicleDevice extends Homey.Device {
     this.registerCapabilityListener('target_temperature', async value => {
       if (this.getCapabilityValue('deepal_climate')) await this._setClimate(true, value);
     });
+    this.registerCapabilityListener(SEAT_CAPABILITIES.driver, value => this._setSeatHeat({ driver: Number(value) }));
+    this.registerCapabilityListener(SEAT_CAPABILITIES.passenger, value => this._setSeatHeat({ passenger: Number(value) }));
+    this.registerCapabilityListener(STEERING_CAPABILITY, value => this._setSteeringWheelHeat(value));
 
     this._schedulePolling();
     this.homey.setTimeout(() => this.poll(), 2000);
@@ -112,13 +125,37 @@ class VehicleDevice extends Homey.Device {
           this.log('MQTT condition unavailable, using REST snapshot:', err.message);
         }
       }
-      if (!condition) condition = await client.getRestCondition(this.vehicleId);
+      if (condition) await this._overlayComfort(client, condition);
+      else condition = await client.getRestCondition(this.vehicleId);
       await this._applyCondition(condition);
       if (!this.getAvailable()) await this.setAvailable();
     } catch (err) {
       await this._handleError(err);
     } finally {
       this.polling = false;
+    }
+  }
+
+  /**
+   * The S05's MQTT report has no trustworthy steering wheel state and sleeping
+   * seat modules report nothing, so take those from the server's condition:
+   * the steering wheel whenever it is reported, the seats when that report is
+   * not older than the MQTT one.
+   */
+  async _overlayComfort(client, condition) {
+    let rest;
+    try {
+      rest = await client.getRestCondition(this.vehicleId);
+    } catch (err) {
+      this.log('Comfort overlay unavailable:', err.message);
+      return;
+    }
+    if (rest.steeringWheelHeat !== null) condition.steeringWheelHeat = rest.steeringWheelHeat;
+    const restIsOlder = condition.lastUpdated && rest.lastUpdated && rest.lastUpdated < condition.lastUpdated;
+    if (!restIsOlder) {
+      for (const seat of Object.keys(SEAT_CAPABILITIES)) {
+        if (rest.seatHeat[seat] !== null) condition.seatHeat[seat] = rest.seatHeat[seat];
+      }
     }
   }
 
@@ -152,6 +189,8 @@ class VehicleDevice extends Homey.Device {
     const set = async (capability, value) => {
       if (value === null || value === undefined || Number.isNaN(value)) return;
       if (!this.hasCapability(capability)) return;
+      const hold = this.holds[capability];
+      if (hold && Date.now() < hold.until && hold.value !== value) return;
       if (this.getCapabilityValue(capability) !== value) {
         await this.setCapabilityValue(capability, value).catch(err => this.error(capability, err.message));
       }
@@ -168,6 +207,11 @@ class VehicleDevice extends Homey.Device {
     if (condition.targetTemperatureC !== null && condition.targetTemperatureC >= 16 && condition.targetTemperatureC <= 32) {
       await set('target_temperature', condition.targetTemperatureC);
     }
+    for (const [seat, capability] of Object.entries(SEAT_CAPABILITIES)) {
+      const level = condition.seatHeat ? condition.seatHeat[seat] : null;
+      await set(capability, level === null ? null : String(level));
+    }
+    await set(STEERING_CAPABILITY, condition.steeringWheelHeat);
     await set('measure_current', condition.chargeCurrentA);
     await set('deepal_charge_time_remaining', condition.remainingChargeTimeMin);
 
@@ -281,6 +325,11 @@ class VehicleDevice extends Homey.Device {
         rearRight: tire('rearRight'),
       },
       warnings: WARNING_LIGHTS.filter(light => value(light.capability) === true).map(light => light.title),
+      seatHeat: {
+        driver: value(SEAT_CAPABILITIES.driver) === null ? null : Number(value(SEAT_CAPABILITIES.driver)),
+        passenger: value(SEAT_CAPABILITIES.passenger) === null ? null : Number(value(SEAT_CAPABILITIES.passenger)),
+      },
+      steeringWheelHeat: value(STEERING_CAPABILITY),
     };
   }
 
@@ -310,6 +359,10 @@ class VehicleDevice extends Homey.Device {
       case 'windows_open': await this.flowSetWindows({ state: 'open' }); break;
       case 'windows_close': await this.flowSetWindows({ state: 'close' }); break;
       case 'refresh': await this.flowWakeAndRefresh(); break;
+      case 'seat_heat_driver': await this._setSeatHeat({ driver: Number(value) }); break;
+      case 'seat_heat_passenger': await this._setSeatHeat({ passenger: Number(value) }); break;
+      case 'steering_on': await this._setSteeringWheelHeat(true); break;
+      case 'steering_off': await this._setSteeringWheelHeat(false); break;
       default: throw new Error(`Unknown action: ${action}`);
     }
     this.emitWidgetState();
@@ -339,6 +392,26 @@ class VehicleDevice extends Homey.Device {
     const temperature = Number(targetTemperature) || 22;
     const runtime = Number(this.getSetting('climate_runtime')) || 30;
     return this._runCommand(client => client.setAirConditioner(this.vehicleId, enabled, temperature, runtime));
+  }
+
+  /** Remember a confirmed value so a stale report right after the command cannot flip it back. */
+  async _confirm(capability, value) {
+    this.holds[capability] = { value, until: Date.now() + COMMAND_HOLD_MS };
+    await this.setCapabilityValue(capability, value).catch(this.error);
+  }
+
+  async _setSeatHeat(levels) {
+    await this._runCommand(client => client.setSeatHeat(this.vehicleId, levels));
+    for (const [seat, level] of Object.entries(levels)) {
+      await this._confirm(SEAT_CAPABILITIES[seat], String(level));
+    }
+    this.emitWidgetState();
+  }
+
+  async _setSteeringWheelHeat(on) {
+    await this._runCommand(client => client.setSteeringWheelHeat(this.vehicleId, on));
+    await this._confirm(STEERING_CAPABILITY, Boolean(on));
+    this.emitWidgetState();
   }
 
   /** Flash/horn actions: refuse while the car still runs the previous cycle; start the cooldown once accepted. */
@@ -389,6 +462,16 @@ class VehicleDevice extends Homey.Device {
 
   async flowWakeAndRefresh() {
     await this.wakeAndRefresh();
+  }
+
+  async flowSetSeatHeat({ seat, level }) {
+    const value = Number(level);
+    const levels = seat === 'both' ? { driver: value, passenger: value } : { [seat]: value };
+    await this._setSeatHeat(levels);
+  }
+
+  async flowSetSteeringWheelHeat({ state }) {
+    await this._setSteeringWheelHeat(state === 'on');
   }
 
 }

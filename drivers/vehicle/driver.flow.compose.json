@@ -165,6 +165,113 @@
       "hint": {
         "en": "Wakes an S05 (at most once every 5 minutes) and waits up to 60 s for a fresh report."
       }
+    },
+    {
+      "id": "set_seat_heat",
+      "title": {
+        "en": "Set seat heating",
+        "no": "Sett setevarme"
+      },
+      "titleFormatted": {
+        "en": "Set [[seat]] seat heating to [[level]]",
+        "no": "Sett setevarme for [[seat]] til [[level]]"
+      },
+      "args": [
+        {
+          "type": "dropdown",
+          "name": "seat",
+          "values": [
+            {
+              "id": "driver",
+              "label": {
+                "en": "driver",
+                "no": "fører"
+              }
+            },
+            {
+              "id": "passenger",
+              "label": {
+                "en": "passenger",
+                "no": "passasjer"
+              }
+            },
+            {
+              "id": "both",
+              "label": {
+                "en": "both front",
+                "no": "begge foran"
+              }
+            }
+          ]
+        },
+        {
+          "type": "dropdown",
+          "name": "level",
+          "values": [
+            {
+              "id": "0",
+              "label": {
+                "en": "Off",
+                "no": "Av"
+              }
+            },
+            {
+              "id": "1",
+              "label": {
+                "en": "Level 1",
+                "no": "Nivå 1"
+              }
+            },
+            {
+              "id": "2",
+              "label": {
+                "en": "Level 2",
+                "no": "Nivå 2"
+              }
+            },
+            {
+              "id": "3",
+              "label": {
+                "en": "Level 3",
+                "no": "Nivå 3"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "set_steering_wheel_heat",
+      "title": {
+        "en": "Turn steering wheel heating on or off",
+        "no": "Slå rattvarme av eller på"
+      },
+      "titleFormatted": {
+        "en": "Turn steering wheel heating [[state]]",
+        "no": "Slå rattvarme [[state]]"
+      },
+      "args": [
+        {
+          "type": "dropdown",
+          "name": "state",
+          "values": [
+            {
+              "id": "on",
+              "label": {
+                "en": "on",
+                "no": "på"
+              }
+            },
+            {
+              "id": "off",
+              "label": {
+                "en": "off",
+                "no": "av"
+              }
+            }
+          ]
+        }
+      ]
     }
   ]
 }

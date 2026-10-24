@@ -115,6 +115,22 @@
   .temp button:active { background: var(--surface-press); }
   .temp-value { width: 52px; text-align: center; font-size: 17px; font-weight: 700; font-variant-numeric: tabular-nums; }
 
+  /* Seat and steering wheel heating */
+  .comfort { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 8px; }
+  .comfort-btn { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 4px 7px; border-radius: 12px; background: var(--surface); text-align: center; min-width: 0; transition: background .2s ease; }
+  .comfort-btn:active:not(:disabled) { background: var(--surface-press); }
+  .comfort-btn:disabled { opacity: .4; }
+  .comfort-btn svg { width: 22px; height: 22px; flex: none; }
+  .comfort-btn.on svg { color: var(--heat); }
+  .comfort-btn.pending svg { animation: pulse 1s ease-in-out infinite; }
+  .comfort-text { min-width: 0; max-width: 100%; display: flex; flex-direction: column; align-items: center; }
+  .comfort-label { font-size: 10.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
+  .levels { display: flex; gap: 3px; margin-top: 4px; height: 4px; }
+  .levels i { width: 10px; height: 4px; border-radius: 2px; background: var(--surface-press); }
+  .levels i.on { background: var(--heat); }
+  .comfort-state { font-size: 10px; line-height: 10px; color: var(--muted); margin-top: 1px; display: block; }
+  .comfort-btn.on .comfort-state { color: var(--heat); font-weight: 600; }
+
   /* Actions */
   .actions { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-top: 8px; }
   .action { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 2px 6px; border-radius: 12px; background: var(--surface); position: relative; transition: background .2s ease; }
@@ -161,7 +177,11 @@
     lock: 'Locked', unlock: 'Unlocked', climate_on: 'Climate started', climate_off: 'Climate stopped',
     set_temperature: 'Temperature set', flash: 'Lights flashed', horn: 'Horn sounded', open_trunk: 'Trunk opened',
     windows_open: 'Windows opened', windows_close: 'Windows closed', refresh: 'Updated',
+    seat_heat_driver: 'Driver seat heating set', seat_heat_passenger: 'Passenger seat heating set',
+    steering_on: 'Steering wheel heating on', steering_off: 'Steering wheel heating off',
   };
+  // Commands that may be adjusted while another one runs: the latest value wins.
+  const ADJUSTABLE = new Set(['set_temperature', 'seat_heat_driver', 'seat_heat_passenger']);
   const COMMAND_TIMEOUT_MS = 120000;
 
   const ICONS = {
@@ -174,6 +194,8 @@
     fan: '<circle cx="12" cy="12" r="2" fill="currentColor"/><path d="M12 10c0-3 .5-6 3-6s2.5 3 0 4.5zM14 12c3 0 6 .5 6 3s-3 2.5-4.5 0zM12 14c0 3-.5 6-3 6s-2.5-3 0-4.5zM10 12c-3 0-6-.5-6-3s3-2.5 4.5 0z" fill="currentColor"/>',
     refresh: '<path d="M20 12a8 8 0 1 1-2.3-5.6M20 4v4.5h-4.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>',
     bolt: '<path d="M13 2 5 13.5h6L10 22l8-11.5h-6z" fill="currentColor"/>',
+    seat: '<path d="M6 3.5a1 1 0 0 1 1.2-.98l2 .4a1 1 0 0 1 .8.98V13h6a2 2 0 0 1 2 2v2H8a2 2 0 0 1-2-2zM7 19h11a1 1 0 0 1 0 2H7a1 1 0 0 1 0-2z" fill="currentColor"/><path d="M13.2 4.6c.5.6.5 1.2 0 1.8s-.5 1.2 0 1.8M16.2 4.6c.5.6.5 1.2 0 1.8s-.5 1.2 0 1.8M19.2 4.6c.5.6.5 1.2 0 1.8s-.5 1.2 0 1.8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
+    wheel: '<path fill="currentColor" fill-rule="evenodd" d="M12 2a10 10 0 1 1 0 20 10 10 0 0 1 0-20Zm0 2a8 8 0 0 0-7.9 6.7l3.4-.6a4.6 4.6 0 0 1 9 0l3.4.6A8 8 0 0 0 12 4Zm-7.9 9.4a8 8 0 0 0 6.5 6.5l-.4-3.6a3.4 3.4 0 0 1-2.6-2.6Zm9.3 6.5a8 8 0 0 0 6.5-6.5l-3.5.3a3.4 3.4 0 0 1-2.6 2.6ZM12 11a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3Z"/>',
   };
   const icon = name => `<svg viewBox="0 0 24 24" aria-hidden="true">${ICONS[name]}</svg>`;
 
@@ -182,6 +204,8 @@
   let selectedId = null;
   let localTemp = null;
   let tempTimer = null;
+  const localSeat = { driver: null, passenger: null };
+  const seatTimers = { driver: null, passenger: null };
   let confirm = null;
   let flashing = false;
   const pending = new Map(); // `${carId}:${action}` -> timeout id
@@ -228,7 +252,7 @@
       return;
     }
     confirm = null;
-    if (anyPending() && action !== 'set_temperature') {
+    if (anyPending() && !ADJUSTABLE.has(action)) {
       showToast('Wait for the current command to finish');
       return;
     }
@@ -254,6 +278,8 @@
     pending.delete(key);
     if (action === 'flash') flashing = false;
     if (action === 'set_temperature') localTemp = null;
+    const seat = action.startsWith('seat_heat_') ? action.slice('seat_heat_'.length) : null;
+    if (seat && !seatTimers[seat]) localSeat[seat] = null;
     if (carId === selectedId) showToast(ok ? DONE[action] || 'Done' : error || 'Command failed', !ok);
     render();
   }
@@ -267,6 +293,21 @@
     clearTimeout(tempTimer);
     // Wait until the user stops tapping; then one command.
     tempTimer = setTimeout(() => run('set_temperature', localTemp), 1500);
+  }
+
+  function stepSeat(seat) {
+    const current = car();
+    if (!current || !current.available) return;
+    const level = localSeat[seat] != null ? localSeat[seat] : (current.seatHeat && current.seatHeat[seat]) || 0;
+    const next = (level + 1) % 4;
+    localSeat[seat] = next;
+    render();
+    clearTimeout(seatTimers[seat]);
+    // Off → 1 → 2 → 3 → Off; one command once the user stops tapping.
+    seatTimers[seat] = setTimeout(() => {
+      seatTimers[seat] = null;
+      run(`seat_heat_${seat}`, next);
+    }, 1200);
   }
 
   // --- Rendering -------------------------------------------------------------------
@@ -465,6 +506,17 @@
         </div>
       </div>
 
+      <div class="comfort">
+        ${seatButton(c, 'driver', 'Driver')}
+        ${seatButton(c, 'passenger', 'Passenger')}
+        <button class="comfort-btn ${c.steeringWheelHeat ? 'on' : ''} ${isPending('steering_on') || isPending('steering_off') ? 'pending' : ''}"
+          data-action="${c.steeringWheelHeat ? 'steering_off' : 'steering_on'}" aria-label="Steering wheel heating"
+          ${!c.available || (busy && !isPending('steering_on') && !isPending('steering_off')) ? 'disabled' : ''}>
+          ${icon('wheel')}
+          <span class="comfort-text"><span class="comfort-label">Wheel</span><span class="comfort-state">${c.steeringWheelHeat == null ? '–' : c.steeringWheelHeat ? 'On' : 'Off'}</span></span>
+        </button>
+      </div>
+
       <div class="actions">
         ${action(lockAction, c.locked === false ? 'Lock' : 'Unlock', c.locked === false ? 'lock' : 'unlock', c.locked === false ? 'alert' : '')}
         ${action('flash', 'Flash', 'flash')}
@@ -491,6 +543,17 @@
     Promise.resolve(Homey.setHeight(height)).catch(() => {});
   }
 
+  function seatButton(c, seat, label) {
+    const level = localSeat[seat] != null ? localSeat[seat] : c.seatHeat ? c.seatHeat[seat] : null;
+    const bars = [1, 2, 3].map(n => `<i class="${level >= n ? 'on' : ''}"></i>`).join('');
+    const pendingSeat = isPending(`seat_heat_${seat}`) || seatTimers[seat];
+    return `<button class="comfort-btn ${level > 0 ? 'on' : ''} ${pendingSeat ? 'pending' : ''}" data-seat="${seat}"
+      aria-label="${label} seat heating, level ${level == null ? 'unknown' : level}" ${!c.available ? 'disabled' : ''}>
+      ${icon('seat')}
+      <span class="comfort-text"><span class="comfort-label">${label}</span><span class="levels">${bars}</span></span>
+    </button>`;
+  }
+
   function escapeHtml(text) {
     return String(text).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
   }
@@ -507,7 +570,7 @@
   // --- Events --------------------------------------------------------------------
 
   document.addEventListener('click', event => {
-    const target = event.target.closest('[data-action], [data-temp], [data-switch]');
+    const target = event.target.closest('[data-action], [data-temp], [data-switch], [data-seat]');
     if (!target || target.disabled) return;
     if (target.hasAttribute('data-switch')) {
       if (cars.length < 2) return;
@@ -522,6 +585,10 @@
       stepTemperature(Number(target.getAttribute('data-temp')));
       return;
     }
+    if (target.hasAttribute('data-seat')) {
+      stepSeat(target.getAttribute('data-seat'));
+      return;
+    }
     const current = car();
     if (current && current.available && busyBlocks(target.getAttribute('data-action'))) {
       showToast('Wait for the current command to finish');
@@ -531,7 +598,7 @@
   });
 
   function busyBlocks(action) {
-    return anyPending() && !isPending(action) && !CONFIRM[action];
+    return anyPending() && !isPending(action) && !CONFIRM[action] && !ADJUSTABLE.has(action);
   }
 
   function remember() {

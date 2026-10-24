@@ -194,3 +194,29 @@ test('S05 MQTT exchange: CA bootstrap, broker login, encrypted condition', async
   assert.strictEqual(login.mt, 'loginout');
   assert.strictEqual(login.b.uid, 'user-1');
 });
+
+test('seat heating sends only the requested seats; off is switch 0 without a level', async () => {
+  const sent = [];
+  const { privateKeyPem, publicKey } = require('../lib/crypto').generateLoginKeypair();
+  fakeGateway({
+    '/serial-no/get': () => nodeCrypto.publicEncrypt(
+      { key: nodeCrypto.createPublicKey(privateKeyPem), padding: nodeCrypto.constants.RSA_PKCS1_PADDING }, Buffer.from('SN'),
+    ).toString('base64'),
+    '/control/seats/heat': body => { sent.push(body); return { commandId: 'c1' }; },
+    '/control/steering-wheel/heat': body => { sent.push(body); return { commandId: 'c2' }; },
+  });
+  const client = new DeepalClient({ session: { accessToken: 'a', refreshToken: 'r', privateKeyPem, publicKey } });
+
+  await client.setSeatHeat('car-1', { driver: 2 });
+  await client.setSeatHeat('car-1', { passenger: 0 });
+  await client.setSeatHeat('car-1', { driver: 3, passenger: 1 });
+  await client.setSteeringWheelHeat('car-1', true);
+  const strip = ({ sign, seriralNo, vehicleId, ...rest }) => rest;
+  assert.deepStrictEqual(sent.map(strip), [
+    { command: 'seats_heat', masterSwitch: 1, masterLevel: 2 },
+    { command: 'seats_heat', copilotSwitch: 0 },
+    { command: 'seats_heat', masterSwitch: 1, masterLevel: 3, copilotSwitch: 1, copilotLevel: 1 },
+    { command: 'steering_wheel_heating', open: true },
+  ]);
+  assert.ok(sent.every(body => body.sign && body.seriralNo === 'SN' && body.vehicleId === 'car-1' && !('rcToken' in body)));
+});

@@ -74,3 +74,16 @@ test('S05 warning lights and key battery are reported only while the car is on',
   assert.strictEqual(rest.keyBatteryLow, null);
   assert.strictEqual(rest.tires.frontLeft.pressureBar, 2.5);
 });
+
+test('seat heating and steering wheel state', () => {
+  const rest = parseCondition({
+    vehicleStatus: { steeringWheelHeater: 1 },
+    seat: { leftFront: { heatStatus: 2 }, rightFront: { heatStatus: 6 }, leftBack: { level: 1 } },
+  });
+  assert.deepStrictEqual(rest.seatHeat, { driver: 2, passenger: null });
+  assert.strictEqual(rest.steeringWheelHeat, true);
+
+  const mqtt = parseCondition(normalizeS05Params({ driverSeatHeatStatus: 3, passengerSeatHeatStatus: 0, steeringWheelHeating: 1 }));
+  assert.deepStrictEqual(mqtt.seatHeat, { driver: 3, passenger: 0 });
+  assert.strictEqual(mqtt.steeringWheelHeat, null, 'the S05 MQTT steering field is not trusted');
+});
