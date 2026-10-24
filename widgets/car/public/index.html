@@ -81,14 +81,13 @@
   .battery-text .charging { color: var(--ok); font-weight: 600; }
 
   /* Car */
-  .car-wrap { position: relative; margin: 8px auto 4px; max-width: 300px; }
-  .car-wrap > svg { width: 100%; height: auto; max-height: 230px; }
+  .car-wrap { position: relative; margin: 10px -6px 6px; }
+  .car-wrap > svg { width: 100%; height: auto; overflow: visible; }
   .part { cursor: pointer; transition: fill .25s ease, opacity .25s ease; }
   .part:active { opacity: .7; }
   .part.disabled { cursor: default; }
-  .tire-label { font-size: 11px; font-weight: 600; fill: var(--muted); font-variant-numeric: tabular-nums; }
+  .tire-label { font-size: 40px; font-weight: 600; fill: var(--muted); font-variant-numeric: tabular-nums; }
   .tire-label.alarm { fill: var(--danger); }
-  .tire-caption { font-size: 9px; fill: var(--muted); opacity: .8; }
   .state-label { font-size: 9.5px; font-weight: 700; letter-spacing: .4px; fill: var(--warn); text-transform: uppercase; }
   .cabin-glow { opacity: 0; transition: opacity .4s ease; }
   .climate-on .cabin-glow { opacity: 1; animation: breathe 3s ease-in-out infinite; }
@@ -291,120 +290,104 @@
 
   const fmt = (value, unit, digits = 0) => (value == null ? '–' : `${Number(value).toFixed(digits)}${unit}`);
 
+  // S05 top view, front to the left: the top edge is the car's right side.
+  // Coordinates are in the original 1200×750 render; s05.png is its crop at (64, 120).
+  const DOOR_SPANS = { front: [400, 645], rear: [680, 890] };
+  const WINDOW_SPANS = { front: [470, 650], rear: [682, 912] };
+
   function carSvg(c) {
     const doors = c.doors || {};
     const windows = c.windows || {};
     const locked = c.locked;
     const busyLock = isPending('lock') || isPending('unlock');
     const confirmUnlock = confirm && confirm.action === 'unlock';
-    const lockFill = confirmUnlock ? 'var(--accent)' : locked === false ? 'var(--warn)' : 'var(--text)';
+    const lockFill = confirmUnlock ? 'var(--accent)' : locked === false ? 'var(--warn)' : '#1d2530';
     const lockAction = locked === false ? 'lock' : 'unlock';
-    const doorFill = open => (open ? 'var(--warn)' : 'var(--body)');
-    const glassFill = open => (open ? 'var(--glass-open)' : 'var(--glass)');
-    const windowsAction = c.anyWindowOpen ? 'windows_close' : 'windows_open';
     const heating = c.targetTemperature != null && c.insideTemperature != null && c.targetTemperature > c.insideTemperature;
     const glow = heating ? 'var(--heat)' : 'var(--accent)';
-    const tire = (t, x, y, anchor) => {
-      const alarm = t && t.alarm;
-      return `<text class="tire-label${alarm ? ' alarm' : ''}" x="${x}" y="${y}" text-anchor="${anchor}">${t && t.bar != null ? `${t.bar.toFixed(1)} bar` : '–'}</text>`;
+    const charging = c.chargingState === 'plugged_in_charging';
+    const plugged = c.chargingState && c.chargingState !== 'plugged_out';
+
+    const tire = (t, x, y) => `<text class="tire-label${t && t.alarm ? ' alarm' : ''}" x="${x}" y="${y}" text-anchor="middle">${t && t.bar != null ? `${t.bar.toFixed(1)} bar` : '–'}</text>`;
+    // Door band along the body edge, and the door drawn swung out from its front hinge.
+    const door = (side, span, open) => {
+      if (!open) return '';
+      const [x1, x2] = DOOR_SPANS[span];
+      const top = side === 'right';
+      const edge = top ? 163 : 585;
+      const band = top ? `M${x1} 158 L${x2} 158 L${x2} 192 L${x1} 192 Z` : `M${x1} 556 L${x2} 556 L${x2} 590 L${x1} 590 Z`;
+      return `<path d="${band}" fill="var(--warn)" opacity=".85" mask="url(#car)"/>
+        <rect x="${x1}" y="${edge - 7}" width="${x2 - x1}" height="14" rx="7" fill="var(--warn)" transform="rotate(${top ? -24 : 24} ${x1} ${edge})"/>`;
     };
-    // An open door is drawn swung out from its front hinge.
-    const openDoor = (side, top, length) => {
-      const x = side === 'left' ? 84 : 210;
-      const hinge = side === 'left' ? 90 : 210;
-      const angle = side === 'left' ? 32 : -32;
-      return `<rect x="${x}" y="${top}" width="6" height="${length}" rx="3" fill="var(--warn)" transform="rotate(${angle} ${hinge} ${top})"/>`;
+    const glass = (side, span, open) => {
+      if (!open) return '';
+      const [x1, x2] = WINDOW_SPANS[span];
+      const y = side === 'right' ? 188 : 526;
+      return `<rect x="${x1}" y="${y}" width="${x2 - x1}" height="35" rx="12" fill="var(--warn)" opacity=".9"/>`;
     };
 
     return `
-    <svg viewBox="0 0 300 330" class="${c.climateOn ? 'climate-on' : ''} ${flashing ? 'flashing' : ''}" role="img" aria-label="Car, top view">
+    <svg viewBox="0 70 1200 625" class="${c.climateOn ? 'climate-on' : ''} ${flashing ? 'flashing' : ''}" role="img" aria-label="Deepal S05, top view">
       <defs>
-        <radialGradient id="glow" cx="50%" cy="50%" r="60%">
-          <stop offset="0%" stop-color="${glow}" stop-opacity=".55"/>
+        <mask id="car" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="1200" height="750">
+          <image href="s05.png" x="64" y="120" width="1072" height="510"/>
+        </mask>
+        <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="${glow}" stop-opacity=".75"/>
           <stop offset="100%" stop-color="${glow}" stop-opacity="0"/>
         </radialGradient>
-        <linearGradient id="beam" x1="0" y1="1" x2="0" y2="0">
-          <stop offset="0%" stop-color="#ffe8a3" stop-opacity=".9"/>
+        <linearGradient id="beam" x1="1" y1="0" x2="0" y2="0">
+          <stop offset="0%" stop-color="#ffe8a3" stop-opacity=".95"/>
           <stop offset="100%" stop-color="#ffe8a3" stop-opacity="0"/>
         </linearGradient>
+        <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+          <feDropShadow dx="0" dy="14" stdDeviation="16" flood-color="#000" flood-opacity=".22"/>
+        </filter>
       </defs>
 
       <!-- headlight beams (shown while flashing) -->
-      <path class="flash-beam" d="M98 22 L70 -10 L130 -10 L118 22 Z" fill="url(#beam)"/>
-      <path class="flash-beam" d="M182 22 L170 -10 L230 -10 L202 22 Z" fill="url(#beam)"/>
+      <path class="flash-beam" d="M150 182 L0 120 L0 270 L135 200 Z" fill="url(#beam)"/>
+      <path class="flash-beam" d="M150 566 L0 628 L0 478 L135 548 Z" fill="url(#beam)"/>
 
-      <!-- wheels -->
-      <rect x="80" y="52" width="13" height="48" rx="5" fill="var(--wheel)"/>
-      <rect x="207" y="52" width="13" height="48" rx="5" fill="var(--wheel)"/>
-      <rect x="80" y="222" width="13" height="48" rx="5" fill="var(--wheel)"/>
-      <rect x="207" y="222" width="13" height="48" rx="5" fill="var(--wheel)"/>
+      <image href="s05.png" x="64" y="120" width="1072" height="510" filter="url(#shadow)"/>
 
-      <!-- body -->
-      <path d="M112 14 C96 14 90 30 90 52 L90 282 C90 304 99 316 120 316 L180 316 C201 316 210 304 210 282 L210 52 C210 30 204 14 188 14 Z" fill="var(--body)" stroke="var(--body-edge)" stroke-width="1.5"/>
+      <!-- state tints, clipped to the car's outline -->
+      ${c.hoodOpen ? '<rect x="64" y="120" width="285" height="510" fill="var(--warn)" opacity=".75" mask="url(#car)"/>' : ''}
+      ${c.trunkOpen ? '<rect x="945" y="120" width="191" height="510" fill="var(--warn)" opacity=".75" mask="url(#car)"/>' : ''}
+      <rect class="cabin-glow" x="380" y="150" width="660" height="450" fill="url(#glow)" mask="url(#car)" style="mix-blend-mode:screen"/>
+      ${glass('right', 'front', windows.frontRight)}${glass('right', 'rear', windows.rearRight)}
+      ${glass('left', 'front', windows.frontLeft)}${glass('left', 'rear', windows.rearLeft)}
+      ${door('right', 'front', doors.passenger)}${door('right', 'rear', doors.rearRight)}
+      ${door('left', 'front', doors.driver)}${door('left', 'rear', doors.rearLeft)}
+      ${flashing ? '<g fill="#ffd65a"><ellipse cx="170" cy="186" rx="40" ry="9"/><ellipse cx="170" cy="562" rx="40" ry="9"/></g>' : ''}
 
-      <!-- hood -->
-      <path d="M112 14 C96 14 90 30 90 52 L90 96 L210 96 L210 52 C210 30 204 14 188 14 Z" fill="${c.hoodOpen ? 'var(--warn)' : 'var(--body)'}" stroke="var(--body-edge)" stroke-width="1"/>
-      <!-- headlights: tap to flash -->
-      <g class="part" data-action="flash" role="button" aria-label="Flash the lights">
-        <path d="M100 30 Q104 20 118 19 L114 30 Z" fill="${flashing ? '#ffd65a' : 'var(--glass)'}"/>
-        <path d="M200 30 Q196 20 182 19 L186 30 Z" fill="${flashing ? '#ffd65a' : 'var(--glass)'}"/>
-        <rect x="96" y="14" width="108" height="26" fill="transparent"/>
-      </g>
-
-      <!-- doors: tap to lock / unlock -->
-      <g class="part" data-action="${lockAction}" role="button" aria-label="${locked === false ? 'Lock' : 'Unlock'} the car">
-        <rect x="90" y="100" width="17" height="80" rx="3" fill="${doorFill(doors.driver)}" stroke="var(--body-edge)"/>
-        <rect x="90" y="182" width="17" height="76" rx="3" fill="${doorFill(doors.rearLeft)}" stroke="var(--body-edge)"/>
-        <rect x="193" y="100" width="17" height="80" rx="3" fill="${doorFill(doors.passenger)}" stroke="var(--body-edge)"/>
-        <rect x="193" y="182" width="17" height="76" rx="3" fill="${doorFill(doors.rearRight)}" stroke="var(--body-edge)"/>
-      </g>
-      ${doors.driver ? openDoor('left', 100, 76) : ''}
-      ${doors.rearLeft ? openDoor('left', 182, 72) : ''}
-      ${doors.passenger ? openDoor('right', 100, 76) : ''}
-      ${doors.rearRight ? openDoor('right', 182, 72) : ''}
-
-      <!-- side windows: tap to open / close all windows -->
-      <g class="part" data-action="${windowsAction}" role="button" aria-label="${c.anyWindowOpen ? 'Close' : 'Open'} the windows">
-        <rect x="101" y="108" width="7" height="66" rx="3" fill="${glassFill(windows.frontLeft)}"/>
-        <rect x="101" y="188" width="7" height="62" rx="3" fill="${glassFill(windows.rearLeft)}"/>
-        <rect x="192" y="108" width="7" height="66" rx="3" fill="${glassFill(windows.frontRight)}"/>
-        <rect x="192" y="188" width="7" height="62" rx="3" fill="${glassFill(windows.rearRight)}"/>
-      </g>
-
-      <!-- glass and roof -->
-      <path d="M104 100 L196 100 L189 132 L111 132 Z" fill="var(--glass)"/>
-      <rect x="111" y="134" width="78" height="96" rx="8" fill="var(--body)" stroke="var(--body-edge)"/>
-      <rect class="cabin-glow" x="104" y="104" width="92" height="152" rx="20" fill="url(#glow)"/>
-      <path d="M111 232 L189 232 L196 258 L104 258 Z" fill="var(--glass)"/>
-
-      <!-- roof lock badge: tap to lock / unlock -->
-      <g class="part lock-badge" data-action="${lockAction}" role="button" aria-label="${locked === false ? 'Lock' : 'Unlock'} the car">
-        <circle cx="150" cy="182" r="22" fill="${lockFill}" opacity="${locked == null ? .35 : 1}"/>
-        ${busyLock ? '<circle class="pending-ring" cx="150" cy="182" r="26"/>' : ''}
-        <g transform="translate(138 170)" style="color: var(--bg)"><svg width="24" height="24" viewBox="0 0 24 24">${locked === false ? ICONS.unlock : ICONS.lock}</svg></g>
-      </g>
-
-      <!-- trunk: tap to open -->
+      <!-- tap areas -->
+      <rect class="part" data-action="flash" role="button" aria-label="Flash the lights" x="70" y="150" width="270" height="450" rx="60" fill="transparent"/>
       <g class="part" data-action="open_trunk" role="button" aria-label="Open the trunk">
-        <path d="M90 262 L210 262 L210 282 C210 304 201 316 180 316 L120 316 C99 316 90 304 90 282 Z" fill="${c.trunkOpen ? 'var(--warn)' : 'var(--body)'}" stroke="var(--body-edge)"/>
-        <path d="M104 306 Q112 300 120 302 M196 306 Q188 300 180 302" stroke="var(--danger)" stroke-width="3" stroke-linecap="round" fill="none" opacity=".75"/>
-        ${isPending('open_trunk') ? '<circle class="pending-ring" cx="150" cy="289" r="12"/>' : ''}
+        <rect x="945" y="170" width="185" height="410" rx="60" fill="transparent"/>
+        ${c.trunkOpen ? '<text class="state-label" x="1035" y="388" text-anchor="middle" style="fill:#fff;font-size:34px">OPEN</text>' : ''}
+        ${isPending('open_trunk') ? '<circle class="pending-ring" cx="1035" cy="375" r="46" style="stroke-width:9"/>' : ''}
+      </g>
+      ${c.hoodOpen ? '<text class="state-label" x="210" y="388" text-anchor="middle" style="fill:#fff;font-size:34px">HOOD OPEN</text>' : ''}
+
+      <!-- lock badge on the glass roof -->
+      <g class="part lock-badge" data-action="${lockAction}" role="button" aria-label="${locked === false ? 'Lock' : 'Unlock'} the car">
+        <circle cx="735" cy="375" r="62" fill="${lockFill}" stroke="rgba(255,255,255,.85)" stroke-width="5" opacity="${locked == null ? .45 : 1}"/>
+        ${busyLock ? '<circle class="pending-ring" cx="735" cy="375" r="76" style="stroke-width:9"/>' : ''}
+        <g transform="translate(691 331) scale(3.67)" style="color:#fff">${locked === false ? ICONS.unlock : ICONS.lock}</g>
       </g>
 
-      ${c.trunkOpen ? '<text class="state-label" x="150" y="292" text-anchor="middle" style="fill:#fff">Open</text>' : ''}
-      ${c.hoodOpen ? '<text class="state-label" x="150" y="60" text-anchor="middle" style="fill:#fff">Hood open</text>' : ''}
+      <!-- charging cable from the rear -->
+      ${plugged ? `
+        <path d="M1128 330 C1160 330 1165 280 1168 250" fill="none" stroke="${charging ? 'var(--ok)' : 'var(--muted)'}" stroke-width="10" stroke-linecap="round"/>
+        <circle cx="1166" cy="214" r="32" fill="${charging ? 'var(--ok)' : 'var(--muted)'}"/>
+        <g transform="translate(1144 192) scale(1.83)" style="color:#fff">${ICONS.bolt}</g>` : ''}
 
-      <!-- charge port -->
-      ${c.chargingState && c.chargingState !== 'plugged_out' ? `
-        <path d="M210 276 C232 276 236 296 250 300" fill="none" stroke="${c.chargingState === 'plugged_in_charging' ? 'var(--ok)' : 'var(--muted)'}" stroke-width="3" stroke-linecap="round"/>
-        <circle cx="258" cy="302" r="13" fill="${c.chargingState === 'plugged_in_charging' ? 'var(--ok)' : 'var(--muted)'}"/>
-        <g transform="translate(250 294)" style="color:#fff"><svg width="16" height="16" viewBox="0 0 24 24">${ICONS.bolt}</svg></g>` : ''}
-
-      <!-- tire pressures -->
-      ${tire(c.tires.frontLeft, 72, 80, 'end')}
-      ${tire(c.tires.frontRight, 228, 80, 'start')}
-      ${tire(c.tires.rearLeft, 72, 250, 'end')}
-      ${tire(c.tires.rearRight, 228, 250, 'start')}
+      <!-- tire pressures: top row is the right side, bottom row the left -->
+      ${tire(c.tires.frontRight, 250, 132)}
+      ${tire(c.tires.rearRight, 930, 132)}
+      ${tire(c.tires.frontLeft, 250, 668)}
+      ${tire(c.tires.rearLeft, 930, 668)}
     </svg>`;
   }
 
