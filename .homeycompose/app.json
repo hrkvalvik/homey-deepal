@@ -5,15 +5,15 @@
   "sdk": 3,
   "platforms": ["local"],
   "name": {
-    "en": "Deepal"
+    "en": "Changan Deepal (Unofficial)"
   },
   "description": {
-    "en": "Battery, charging, climate and remote control for Deepal / Changan cars",
-    "no": "Batteri, lading, klima og fjernkontroll for Deepal / Changan-biler"
+    "en": "Keep an eye on your car and control it from your smart home",
+    "no": "Hold øye med bilen og styr den fra smarthjemmet"
   },
   "category": ["climate"],
   "permissions": [],
-  "brandColor": "#1B3A5B",
+  "brandColor": "#20B2AA",
   "images": {
     "small": "/assets/images/small.png",
     "large": "/assets/images/large.png",
@@ -21,6 +21,11 @@
   },
   "author": {
     "name": "hrkvalvik"
+  },
+  "contributors": {
+    "developers": [
+      { "name": "Sunek0 and the ha-deepal-alternative contributors" }
+    ]
   },
   "support": "https://github.com/hrkvalvik/homey-deepal/issues",
   "source": "https://github.com/hrkvalvik/homey-deepal"

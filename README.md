@@ -88,7 +88,7 @@ whether the car may be woken before PIN commands.
 - It updates live, and each command shows a short result message.
 - With more than one car, tap the name to switch.
 
-![Widget, light theme](widgets/car/preview-light.png)
+![Widget, light theme](docs/widget-light.png)
 
 ### Languages
 
@@ -144,7 +144,7 @@ Prepare the account (do this once, in the My Changan app):
    To update later, pull the new version and run `homey app install` again. It updates in place and
    keeps your car, PIN and Flows. **Do not uninstall the app to update it:** that deletes them.
 
-4. **Add the car.** In the Homey app, go to *Devices → + → Deepal → Deepal vehicle*.
+4. **Add the car.** In the Homey app, go to *Devices → + → Changan Deepal (Unofficial) → Deepal vehicle*.
    1. Choose **Email code** (recommended) or SMS code.
    2. Enter the email of the second account, your **sales country** as a 2-letter code (for example
       `NO`), and the region (**Europe** for EU cars).
@@ -158,7 +158,7 @@ Prepare the account (do this once, in the My Changan app):
 6. **Try it.** The first reading can take a minute. Check *Last report*, then flash the lights.
    If the report looks old, use the *Wake the car and refresh* Flow card.
 
-7. **Add the widget (optional).** Open a dashboard, press *Edit*, then *+ → Deepal → Deepal car*.
+7. **Add the widget (optional).** Open a dashboard, press *Edit*, then *+ → Changan Deepal (Unofficial) → Deepal car*.
 
 ## Troubleshooting
 
