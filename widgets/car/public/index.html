@@ -478,13 +478,17 @@
     syncHeight();
   }
 
-  // Warning chips add a row; let the dashboard tile follow the content.
+  // Homey keeps the widget hidden until ready(), and a hidden page measures 0 px.
+  // So ready() uses the manifest height, and the real height is sent once visible.
+  const MIN_HEIGHT = 300;
+  let isReady = false;
   let lastHeight = null;
   function syncHeight() {
-    const height = document.body.scrollHeight;
-    if (!Homey || height === lastHeight) return;
+    if (!isReady || typeof Homey.setHeight !== 'function') return;
+    const height = Math.ceil(document.getElementById('app').getBoundingClientRect().height) + 26; // body padding
+    if (height < MIN_HEIGHT || height === lastHeight) return;
     lastHeight = height;
-    Homey.setHeight(height).catch(() => {});
+    Promise.resolve(Homey.setHeight(height)).catch(() => {});
   }
 
   function escapeHtml(text) {
@@ -549,8 +553,12 @@
     });
     Homey.on('deepal:command', finish);
     load().then(() => {
-      lastHeight = document.body.scrollHeight;
-      Homey.ready({ height: lastHeight });
+      Homey.ready();
+      isReady = true;
+      // Layout settles over a few frames after Homey reveals the widget.
+      requestAnimationFrame(() => setTimeout(syncHeight, 50));
+      setTimeout(syncHeight, 1000);
+      if (window.ResizeObserver) new ResizeObserver(syncHeight).observe(document.getElementById('app'));
     });
     setInterval(load, 60000);
     // Keep "updated x min ago" current between reports.

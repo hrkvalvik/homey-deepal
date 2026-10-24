@@ -1,6 +1,6 @@
 {
   "name": { "en": "Deepal car" },
-  "height": 420,
+  "height": 430,
   "transparent": false,
   "api": {
     "getState": { "method": "GET", "path": "/state" },
