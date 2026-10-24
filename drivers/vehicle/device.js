@@ -29,15 +29,15 @@ const COMMAND_HOLD_MS = 3 * 60 * 1000;
 
 // Only S05 (MQTT) cars report these, so they are added the first time a value arrives.
 const WARNING_LIGHTS = [
-  { key: 'battery12v', capability: 'alarm_generic.battery_12v', title: '12 V battery warning' },
-  { key: 'abs', capability: 'alarm_generic.abs', title: 'ABS warning' },
-  { key: 'brake', capability: 'alarm_generic.brake', title: 'Brake warning' },
-  { key: 'brakeFluid', capability: 'alarm_generic.brake_fluid', title: 'Brake fluid warning' },
-  { key: 'eps', capability: 'alarm_generic.power_steering', title: 'Power steering warning' },
-  { key: 'powerLimit', capability: 'alarm_generic.power_limit', title: 'Power limit warning' },
-  { key: 'powerSystem', capability: 'alarm_generic.power_system', title: 'Power system warning' },
-  { key: 'tractionBatteryLow', capability: 'alarm_generic.traction_battery_low', title: 'Traction battery low' },
-  { key: 'keyBatteryLow', capability: 'alarm_generic.key_battery', title: 'Key fob battery low' },
+  { key: 'battery12v', capability: 'alarm_generic.battery_12v', title: { en: '12 V battery warning', no: '12 V-batterivarsel' } },
+  { key: 'abs', capability: 'alarm_generic.abs', title: { en: 'ABS warning', no: 'ABS-varsel' } },
+  { key: 'brake', capability: 'alarm_generic.brake', title: { en: 'Brake warning', no: 'Bremsevarsel' } },
+  { key: 'brakeFluid', capability: 'alarm_generic.brake_fluid', title: { en: 'Brake fluid warning', no: 'Bremsevæskevarsel' } },
+  { key: 'eps', capability: 'alarm_generic.power_steering', title: { en: 'Power steering warning', no: 'Servostyringsvarsel' } },
+  { key: 'powerLimit', capability: 'alarm_generic.power_limit', title: { en: 'Power limit warning', no: 'Varsel om effektbegrensning' } },
+  { key: 'powerSystem', capability: 'alarm_generic.power_system', title: { en: 'Power system warning', no: 'Varsel om kraftsystem' } },
+  { key: 'tractionBatteryLow', capability: 'alarm_generic.traction_battery_low', title: { en: 'Traction battery low', no: 'Lavt nivå på traksjonsbatteri' } },
+  { key: 'keyBatteryLow', capability: 'alarm_generic.key_battery', title: { en: 'Key fob battery low', no: 'Lavt batteri i nøkkelen' } },
 ];
 
 class VehicleDevice extends Homey.Device {
@@ -57,6 +57,15 @@ class VehicleDevice extends Homey.Device {
     }
     await this.setCapabilityOptions(SEAT_CAPABILITIES.driver, { title: { en: 'Driver seat heating', no: 'Setevarme fører' } }).catch(this.error);
     await this.setCapabilityOptions(SEAT_CAPABILITIES.passenger, { title: { en: 'Passenger seat heating', no: 'Setevarme passasjer' } }).catch(this.error);
+    // Options stored on devices paired earlier lack the translated titles from the manifest.
+    for (const [capability, options] of Object.entries(this.driver.manifest.capabilitiesOptions || {})) {
+      if (options.title && this.hasCapability(capability)) {
+        await this.setCapabilityOptions(capability, { title: options.title }).catch(this.error);
+      }
+    }
+    for (const { capability, title } of WARNING_LIGHTS) {
+      if (this.hasCapability(capability)) await this.setCapabilityOptions(capability, { title }).catch(this.error);
+    }
     this.warningLightTrigger = this.homey.flow.getDeviceTriggerCard('warning_light_on');
 
     this.registerCapabilityListener('locked', value => this._runCommand(
@@ -249,6 +258,11 @@ class VehicleDevice extends Homey.Device {
     this.emitWidgetState();
   }
 
+  /** Pick the text for the Homey language, falling back to English. */
+  _localized(text) {
+    return text[this.homey.i18n.getLanguage()] || text.en;
+  }
+
   /** Add each warning light on its first report, then trigger the Flow card when one turns on. */
   async _applyWarningLights(condition) {
     const values = { ...(condition.warningLights || {}), keyBatteryLow: condition.keyBatteryLow };
@@ -258,14 +272,14 @@ class VehicleDevice extends Homey.Device {
       if (value === null || value === undefined) continue;
       if (!this.hasCapability(capability)) {
         await this.addCapability(capability);
-        await this.setCapabilityOptions(capability, { title: { en: title } }).catch(this.error);
+        await this.setCapabilityOptions(capability, { title }).catch(this.error);
       }
       const wasOn = this.getCapabilityValue(capability) === true;
       if (this.getCapabilityValue(capability) !== value) {
         await this.setCapabilityValue(capability, value).catch(err => this.error(capability, err.message));
       }
       if (value && !wasOn) {
-        await this.warningLightTrigger.trigger(this, { light: title }).catch(this.error);
+        await this.warningLightTrigger.trigger(this, { light: this._localized(title) }).catch(this.error);
       }
     }
   }
@@ -324,7 +338,7 @@ class VehicleDevice extends Homey.Device {
         rearLeft: tire('rearLeft'),
         rearRight: tire('rearRight'),
       },
-      warnings: WARNING_LIGHTS.filter(light => value(light.capability) === true).map(light => light.title),
+      warnings: WARNING_LIGHTS.filter(light => value(light.capability) === true).map(light => this._localized(light.title)),
       seatHeat: {
         driver: value(SEAT_CAPABILITIES.driver) === null ? null : Number(value(SEAT_CAPABILITIES.driver)),
         passenger: value(SEAT_CAPABILITIES.passenger) === null ? null : Number(value(SEAT_CAPABILITIES.passenger)),

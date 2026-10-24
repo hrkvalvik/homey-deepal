@@ -165,6 +165,86 @@
 <script>
   'use strict';
 
+  // Norwegian texts; English is the fallback. Homey's language when known, else the browser's.
+  const NO = {
+    "Tap again to unlock": "Trykk igjen for å låse opp",
+    "Tap again to open the trunk": "Trykk igjen for å åpne bagasjerommet",
+    "Tap again to open the windows": "Trykk igjen for å åpne vinduene",
+    "Tap again to close the windows": "Trykk igjen for å lukke vinduene",
+    "Locked": "Låst",
+    "Unlocked": "Låst opp",
+    "Climate started": "Klima startet",
+    "Climate stopped": "Klima stoppet",
+    "Temperature set": "Temperatur satt",
+    "Lights flashed": "Lysene blinket",
+    "Horn sounded": "Hornet ble brukt",
+    "Trunk opened": "Bagasjerom åpnet",
+    "Windows opened": "Vinduer åpnet",
+    "Windows closed": "Vinduer lukket",
+    "Updated": "Oppdatert",
+    "Driver seat heating set": "Setevarme fører satt",
+    "Passenger seat heating set": "Setevarme passasjer satt",
+    "Steering wheel heating on": "Rattvarme på",
+    "Steering wheel heating off": "Rattvarme av",
+    "Done": "Ferdig",
+    "Command failed": "Kommandoen mislyktes",
+    "Set the remote-control PIN in the device settings first": "Angi PIN-koden for fjernkontroll i enhetsinnstillingene først",
+    "Wait for the current command to finish": "Vent til pågående kommando er ferdig",
+    "No report yet": "Ingen rapport ennå",
+    "Updated just now": "Oppdatert nå",
+    "min": "min",
+    "range": "rekkevidde",
+    "left": "igjen",
+    "Charging": "Lader",
+    "Plugged in": "Koblet til",
+    "Door open": "Dør åpen",
+    "Window open": "Vindu åpent",
+    "Unavailable": "Utilgjengelig",
+    "Starting…": "Starter …",
+    "Stopping…": "Stopper …",
+    "Heating": "Varmer",
+    "Cooling": "Kjøler",
+    "Climate off": "Klima av",
+    "Lower temperature": "Senk temperatur",
+    "Raise temperature": "Øk temperatur",
+    "Driver": "Fører",
+    "Passenger": "Passasjer",
+    "Steering wheel heating": "Rattvarme",
+    "Wheel": "Ratt",
+    "On": "På",
+    "Off": "Av",
+    "Lock": "Lås",
+    "Unlock": "Lås opp",
+    "Flash": "Blink",
+    "Horn": "Horn",
+    "Trunk": "Bagasje",
+    "Close": "Lukk",
+    "Windows": "Vinduer",
+    "OPEN": "ÅPEN",
+    "HOOD OPEN": "PANSER ÅPENT",
+    "Flash the lights": "Blink med lysene",
+    "Open the trunk": "Åpne bagasjerommet",
+    "the car": "bilen",
+    "Deepal S05, top view": "Deepal S05, sett ovenfra",
+    "No car yet": "Ingen bil ennå",
+    "Add your car under Devices → + → Deepal.": "Legg til bilen under Enheter → + → Deepal.",
+    "Car unavailable": "Bilen er utilgjengelig",
+    "The My Changan login expired or was signed out. Open the device and choose Repair to log in again.": "My Changan-innloggingen har utløpt eller ble logget ut. Åpne enheten og velg Reparer for å logge inn på nytt.",
+    "Wake the car and refresh": "Vekk bilen og oppdater",
+    "seat heating": "setevarme",
+    "level": "nivå",
+    "unknown": "ukjent"
+  };
+  let lang = null;
+  function t(text) {
+    if (lang === null) {
+      let code = '';
+      try { code = (typeof Homey.getLanguage === 'function' && Homey.getLanguage()) || ''; } catch (err) { /* optional */ }
+      lang = String(code || navigator.language || 'en').slice(0, 2).toLowerCase();
+    }
+    return lang === 'nb' || lang === 'nn' || lang === 'no' ? NO[text] || text : text;
+  }
+
   // Actions that move something on the car ask for a second tap.
   const CONFIRM = {
     unlock: 'Tap again to unlock',
@@ -241,19 +321,19 @@
     const current = car();
     if (!current || !current.available) return;
     if (PIN_ACTIONS.has(action) && !current.hasPin) {
-      showToast('Set the remote-control PIN in the device settings first', true);
+      showToast(t('Set the remote-control PIN in the device settings first'), true);
       return;
     }
     if (CONFIRM[action] && !(confirm && confirm.action === action && Date.now() < confirm.until)) {
       confirm = { action, until: Date.now() + 3000 };
-      showToast(CONFIRM[action]);
+      showToast(t(CONFIRM[action]));
       render();
       setTimeout(() => { if (confirm && confirm.action === action && Date.now() >= confirm.until) { confirm = null; render(); } }, 3100);
       return;
     }
     confirm = null;
     if (anyPending() && !ADJUSTABLE.has(action)) {
-      showToast('Wait for the current command to finish');
+      showToast(t('Wait for the current command to finish'));
       return;
     }
     try { Homey.hapticFeedback(); } catch (err) { /* only allowed right after a touch */ }
@@ -280,7 +360,7 @@
     if (action === 'set_temperature') localTemp = null;
     const seat = action.startsWith('seat_heat_') ? action.slice('seat_heat_'.length) : null;
     if (seat && !seatTimers[seat]) localSeat[seat] = null;
-    if (carId === selectedId) showToast(ok ? DONE[action] || 'Done' : error || 'Command failed', !ok);
+    if (carId === selectedId) showToast(ok ? t(DONE[action] || 'Done') : error || t('Command failed'), !ok);
     render();
   }
 
@@ -313,13 +393,15 @@
   // --- Rendering -------------------------------------------------------------------
 
   function ago(seconds) {
-    if (!seconds) return 'No report yet';
+    if (!seconds) return t('No report yet');
     const minutes = Math.round((Date.now() / 1000 - seconds) / 60);
-    if (minutes < 1) return 'Updated just now';
-    if (minutes < 60) return `Updated ${minutes} min ago`;
+    if (minutes < 1) return t('Updated just now');
+    const no = t('Updated') !== 'Updated';
+    const since = (amount, unit) => (no ? `Oppdatert for ${amount} ${unit} siden` : `Updated ${amount} ${unit} ago`);
+    if (minutes < 60) return since(minutes, 'min');
     const hours = Math.round(minutes / 60);
-    if (hours < 24) return `Updated ${hours} h ago`;
-    return `Updated ${Math.round(hours / 24)} d ago`;
+    if (hours < 24) return since(hours, no ? 't' : 'h');
+    return since(Math.round(hours / 24), 'd');
   }
 
   function duration(minutes) {
@@ -368,7 +450,7 @@
     };
 
     return `
-    <svg viewBox="0 70 1200 625" class="${c.climateOn ? 'climate-on' : ''} ${flashing ? 'flashing' : ''}" role="img" aria-label="Deepal S05, top view">
+    <svg viewBox="0 70 1200 625" class="${c.climateOn ? 'climate-on' : ''} ${flashing ? 'flashing' : ''}" role="img" aria-label="${t('Deepal S05, top view')}">
       <defs>
         <mask id="car" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="1200" height="750">
           <image href="s05.png" x="64" y="120" width="1072" height="510"/>
@@ -403,16 +485,16 @@
       ${flashing ? '<g fill="#ffd65a"><ellipse cx="170" cy="186" rx="40" ry="9"/><ellipse cx="170" cy="562" rx="40" ry="9"/></g>' : ''}
 
       <!-- tap areas -->
-      <rect class="part" data-action="flash" role="button" aria-label="Flash the lights" x="70" y="150" width="270" height="450" rx="60" fill="transparent"/>
-      <g class="part" data-action="open_trunk" role="button" aria-label="Open the trunk">
+      <rect class="part" data-action="flash" role="button" aria-label="${t('Flash the lights')}" x="70" y="150" width="270" height="450" rx="60" fill="transparent"/>
+      <g class="part" data-action="open_trunk" role="button" aria-label="${t('Open the trunk')}">
         <rect x="945" y="170" width="185" height="410" rx="60" fill="transparent"/>
-        ${c.trunkOpen ? '<text class="state-label" x="1035" y="388" text-anchor="middle" style="fill:#fff;font-size:34px">OPEN</text>' : ''}
+        ${c.trunkOpen ? `<text class="state-label" x="1035" y="388" text-anchor="middle" style="fill:#fff;font-size:34px">${t('OPEN')}</text>` : ''}
         ${isPending('open_trunk') ? '<circle class="pending-ring" cx="1035" cy="375" r="46" style="stroke-width:9"/>' : ''}
       </g>
-      ${c.hoodOpen ? '<text class="state-label" x="210" y="388" text-anchor="middle" style="fill:#fff;font-size:34px">HOOD OPEN</text>' : ''}
+      ${c.hoodOpen ? `<text class="state-label" x="210" y="388" text-anchor="middle" style="fill:#fff;font-size:34px">${t('HOOD OPEN')}</text>` : ''}
 
       <!-- lock badge on the glass roof -->
-      <g class="part lock-badge" data-action="${lockAction}" role="button" aria-label="${locked === false ? 'Lock' : 'Unlock'} the car">
+      <g class="part lock-badge" data-action="${lockAction}" role="button" aria-label="${t(locked === false ? 'Lock' : 'Unlock')} ${t('the car')}">
         <circle cx="735" cy="375" r="62" fill="${lockFill}" stroke="rgba(255,255,255,.85)" stroke-width="5" opacity="${locked == null ? .45 : 1}"/>
         ${busyLock ? '<circle class="pending-ring" cx="735" cy="375" r="76" style="stroke-width:9"/>' : ''}
         <g transform="translate(691 331) scale(3.67)" style="color:#fff">${locked === false ? ICONS.unlock : ICONS.lock}</g>
@@ -436,7 +518,7 @@
     const app = document.getElementById('app');
     const c = car();
     if (!c) {
-      app.innerHTML = '<div style="position:relative;height:420px"><div class="overlay"><div><strong>No car yet</strong>Add your car under Devices → + → Deepal.</div></div></div>';
+      app.innerHTML = `<div style="position:relative;height:420px"><div class="overlay"><div><strong>${t('No car yet')}</strong>${t('Add your car under Devices → + → Deepal.')}</div></div></div>`;
       return;
     }
 
@@ -449,19 +531,19 @@
     const lockAction = c.locked === false ? 'lock' : 'unlock';
     const windowsAction = c.anyWindowOpen ? 'windows_close' : 'windows_open';
 
-    let chargeText = `${fmt(c.rangeKm, ' km')} range`;
+    let chargeText = `${fmt(c.rangeKm, ' km')} ${t('range')}`;
     let chargeClass = '';
     if (charging) {
       chargeClass = 'charging';
-      chargeText = ['Charging', c.chargeCurrentA ? `${Math.round(c.chargeCurrentA)} A` : null,
-        c.chargeTimeRemainingMin != null ? `${duration(c.chargeTimeRemainingMin)} left` : null].filter(Boolean).join(' · ');
+      chargeText = [t('Charging'), c.chargeCurrentA ? `${Math.round(c.chargeCurrentA)} A` : null,
+        c.chargeTimeRemainingMin != null ? `${duration(c.chargeTimeRemainingMin)} ${t('left')}` : null].filter(Boolean).join(' · ');
     } else if (plugged) {
-      chargeText = 'Plugged in';
+      chargeText = t('Plugged in');
     }
 
     const chips = [...c.warnings.map(w => `<span class="chip">${w}</span>`)];
-    if (c.anyDoorOpen) chips.push('<span class="chip info">Door open</span>');
-    if (c.anyWindowOpen) chips.push('<span class="chip info">Window open</span>');
+    if (c.anyDoorOpen) chips.push(`<span class="chip info">${t('Door open')}</span>`);
+    if (c.anyWindowOpen) chips.push(`<span class="chip info">${t('Window open')}</span>`);
 
     const action = (name, label, iconName, extra = '') => {
       const classes = ['action', extra];
@@ -475,9 +557,9 @@
       <div class="header">
         <div class="title">
           <button class="name ${cars.length > 1 ? 'switchable' : ''}" data-switch>${escapeHtml(c.name)}</button>
-          <div class="sub">${c.available ? ago(c.lastUpdated) : 'Unavailable'}</div>
+          <div class="sub">${c.available ? ago(c.lastUpdated) : t('Unavailable')}</div>
         </div>
-        <button class="refresh ${isPending('refresh') ? 'busy' : ''}" data-action="refresh" aria-label="Wake the car and refresh" ${!c.available || busy ? 'disabled' : ''}>${icon('refresh')}</button>
+        <button class="refresh ${isPending('refresh') ? 'busy' : ''}" data-action="refresh" aria-label="${t('Wake the car and refresh')}" ${!c.available || busy ? 'disabled' : ''}>${icon('refresh')}</button>
       </div>
 
       <div class="battery">
@@ -495,37 +577,37 @@
         <button class="climate-toggle" data-action="${c.climateOn ? 'climate_off' : 'climate_on'}" ${!c.available || (busy && !isPending('climate_on') && !isPending('climate_off')) ? 'disabled' : ''}>
           <span class="climate-icon">${icon('fan')}</span>
           <span style="min-width:0">
-            <div class="climate-label">${isPending('climate_on') ? 'Starting…' : isPending('climate_off') ? 'Stopping…' : c.climateOn ? (heating ? 'Heating' : 'Cooling') : 'Climate off'}</div>
+            <div class="climate-label">${isPending('climate_on') ? t('Starting…') : isPending('climate_off') ? t('Stopping…') : c.climateOn ? t(heating ? 'Heating' : 'Cooling') : t('Climate off')}</div>
             <div class="climate-sub">In ${fmt(c.insideTemperature, '°', 0)} · Out ${fmt(c.outsideTemperature, '°', 0)}</div>
           </span>
         </button>
         <div class="temp">
-          <button data-temp="-0.5" aria-label="Lower temperature" ${!c.available ? 'disabled' : ''}>−</button>
+          <button data-temp="-0.5" aria-label="${t('Lower temperature')}" ${!c.available ? 'disabled' : ''}>−</button>
           <div class="temp-value">${temp.toFixed(1)}°</div>
-          <button data-temp="0.5" aria-label="Raise temperature" ${!c.available ? 'disabled' : ''}>+</button>
+          <button data-temp="0.5" aria-label="${t('Raise temperature')}" ${!c.available ? 'disabled' : ''}>+</button>
         </div>
       </div>
 
       <div class="comfort">
-        ${seatButton(c, 'driver', 'Driver')}
-        ${seatButton(c, 'passenger', 'Passenger')}
+        ${seatButton(c, 'driver', t('Driver'))}
+        ${seatButton(c, 'passenger', t('Passenger'))}
         <button class="comfort-btn ${c.steeringWheelHeat ? 'on' : ''} ${isPending('steering_on') || isPending('steering_off') ? 'pending' : ''}"
-          data-action="${c.steeringWheelHeat ? 'steering_off' : 'steering_on'}" aria-label="Steering wheel heating"
+          data-action="${c.steeringWheelHeat ? 'steering_off' : 'steering_on'}" aria-label="${t('Steering wheel heating')}"
           ${!c.available || (busy && !isPending('steering_on') && !isPending('steering_off')) ? 'disabled' : ''}>
           ${icon('wheel')}
-          <span class="comfort-text"><span class="comfort-label">Wheel</span><span class="comfort-state">${c.steeringWheelHeat == null ? '–' : c.steeringWheelHeat ? 'On' : 'Off'}</span></span>
+          <span class="comfort-text"><span class="comfort-label">${t('Wheel')}</span><span class="comfort-state">${c.steeringWheelHeat == null ? '–' : c.steeringWheelHeat ? t('On') : t('Off')}</span></span>
         </button>
       </div>
 
       <div class="actions">
-        ${action(lockAction, c.locked === false ? 'Lock' : 'Unlock', c.locked === false ? 'lock' : 'unlock', c.locked === false ? 'alert' : '')}
-        ${action('flash', 'Flash', 'flash')}
-        ${action('horn', 'Horn', 'horn')}
-        ${action('open_trunk', 'Trunk', 'trunk', c.trunkOpen ? 'alert' : '')}
-        ${action(windowsAction, c.anyWindowOpen ? 'Close' : 'Windows', 'window', c.anyWindowOpen ? 'alert' : '')}
+        ${action(lockAction, t(c.locked === false ? 'Lock' : 'Unlock'), c.locked === false ? 'lock' : 'unlock', c.locked === false ? 'alert' : '')}
+        ${action('flash', t('Flash'), 'flash')}
+        ${action('horn', t('Horn'), 'horn')}
+        ${action('open_trunk', t('Trunk'), 'trunk', c.trunkOpen ? 'alert' : '')}
+        ${action(windowsAction, t(c.anyWindowOpen ? 'Close' : 'Windows'), 'window', c.anyWindowOpen ? 'alert' : '')}
       </div>
 
-      ${c.available ? '' : `<div class="overlay" style="top:58px"><div><strong>Car unavailable</strong>The My Changan login expired or was signed out. Open the device and choose Repair to log in again.</div></div>`}
+      ${c.available ? '' : `<div class="overlay" style="top:58px"><div><strong>${t('Car unavailable')}</strong>${t('The My Changan login expired or was signed out. Open the device and choose Repair to log in again.')}</div></div>`}
     `;
     syncHeight();
   }
@@ -548,7 +630,7 @@
     const bars = [1, 2, 3].map(n => `<i class="${level >= n ? 'on' : ''}"></i>`).join('');
     const pendingSeat = isPending(`seat_heat_${seat}`) || seatTimers[seat];
     return `<button class="comfort-btn ${level > 0 ? 'on' : ''} ${pendingSeat ? 'pending' : ''}" data-seat="${seat}"
-      aria-label="${label} seat heating, level ${level == null ? 'unknown' : level}" ${!c.available ? 'disabled' : ''}>
+      aria-label="${label} ${t('seat heating')}, ${t('level')} ${level == null ? t('unknown') : level}" ${!c.available ? 'disabled' : ''}>
       ${icon('seat')}
       <span class="comfort-text"><span class="comfort-label">${label}</span><span class="levels">${bars}</span></span>
     </button>`;
@@ -591,7 +673,7 @@
     }
     const current = car();
     if (current && current.available && busyBlocks(target.getAttribute('data-action'))) {
-      showToast('Wait for the current command to finish');
+      showToast(t('Wait for the current command to finish'));
       return;
     }
     run(target.getAttribute('data-action'), target.getAttribute('data-action') === 'climate_on' ? (localTemp != null ? localTemp : current && current.targetTemperature) : undefined);

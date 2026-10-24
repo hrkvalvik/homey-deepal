@@ -11,7 +11,8 @@
     "en": "Deepal"
   },
   "description": {
-    "en": "Battery, charging, climate and remote control for Deepal / Changan cars"
+    "en": "Battery, charging, climate and remote control for Deepal / Changan cars",
+    "no": "Batteri, lading, klima og fjernkontroll for Deepal / Changan-biler"
   },
   "category": [
     "climate"
@@ -24,17 +25,17 @@
     "xlarge": "/assets/images/xlarge.png"
   },
   "author": {
-    "name": "Your Name",
-    "email": "you@example.com"
+    "name": "hrkvalvik"
   },
-  "support": "https://github.com/YOUR_USER/homey-deepal/issues",
-  "source": "https://github.com/YOUR_USER/homey-deepal",
+  "support": "https://github.com/hrkvalvik/homey-deepal/issues",
+  "source": "https://github.com/hrkvalvik/homey-deepal",
   "flow": {
     "triggers": [
       {
         "id": "charging_started",
         "title": {
-          "en": "Charging started"
+          "en": "Charging started",
+          "no": "Lading startet"
         },
         "args": [
           {
@@ -47,7 +48,8 @@
       {
         "id": "charging_stopped",
         "title": {
-          "en": "Charging stopped"
+          "en": "Charging stopped",
+          "no": "Lading stoppet"
         },
         "args": [
           {
@@ -60,20 +62,24 @@
       {
         "id": "warning_light_on",
         "title": {
-          "en": "A dashboard warning light turned on"
+          "en": "A dashboard warning light turned on",
+          "no": "Et varsellys i dashbordet ble slått på"
         },
         "hint": {
-          "en": "S05 only: reported while the car is on."
+          "en": "S05 only: reported while the car is on.",
+          "no": "Kun S05: rapporteres mens bilen er på."
         },
         "tokens": [
           {
             "name": "light",
             "type": "string",
             "title": {
-              "en": "Warning light"
+              "en": "Warning light",
+              "no": "Varsellys"
             },
             "example": {
-              "en": "ABS warning"
+              "en": "ABS warning",
+              "no": "ABS-varsel"
             }
           }
         ],
@@ -90,7 +96,8 @@
       {
         "id": "is_charging",
         "title": {
-          "en": "Is !{{|not}} charging"
+          "en": "Is !{{|not}} charging",
+          "no": "Lader !{{|ikke}}"
         },
         "args": [
           {
@@ -103,7 +110,8 @@
       {
         "id": "is_plugged_in",
         "title": {
-          "en": "Is !{{|not}} plugged in"
+          "en": "Is !{{|not}} plugged in",
+          "no": "Er !{{|ikke}} koblet til lader"
         },
         "args": [
           {
@@ -118,10 +126,12 @@
       {
         "id": "climate_on",
         "title": {
-          "en": "Start climate"
+          "en": "Start climate",
+          "no": "Start klima"
         },
         "titleFormatted": {
-          "en": "Start climate at [[temperature]] °C"
+          "en": "Start climate at [[temperature]] °C",
+          "no": "Start klima på [[temperature]] °C"
         },
         "args": [
           {
@@ -136,7 +146,8 @@
             "max": 32,
             "step": 0.5,
             "placeholder": {
-              "en": "22"
+              "en": "22",
+              "no": "22"
             }
           }
         ]
@@ -144,7 +155,8 @@
       {
         "id": "climate_off",
         "title": {
-          "en": "Stop climate"
+          "en": "Stop climate",
+          "no": "Stopp klima"
         },
         "args": [
           {
@@ -157,7 +169,8 @@
       {
         "id": "flash_lights",
         "title": {
-          "en": "Flash the lights"
+          "en": "Flash the lights",
+          "no": "Blink med lysene"
         },
         "args": [
           {
@@ -170,7 +183,8 @@
       {
         "id": "sound_horn",
         "title": {
-          "en": "Sound the horn"
+          "en": "Sound the horn",
+          "no": "Tut med hornet"
         },
         "args": [
           {
@@ -183,7 +197,8 @@
       {
         "id": "flash_and_horn",
         "title": {
-          "en": "Flash the lights and sound the horn"
+          "en": "Flash the lights and sound the horn",
+          "no": "Blink med lysene og tut med hornet"
         },
         "args": [
           {
@@ -196,10 +211,12 @@
       {
         "id": "open_trunk",
         "title": {
-          "en": "Open the trunk"
+          "en": "Open the trunk",
+          "no": "Åpne bagasjerommet"
         },
         "hint": {
-          "en": "Requires the remote-control PIN."
+          "en": "Requires the remote-control PIN.",
+          "no": "Krever PIN-koden for fjernkontroll."
         },
         "args": [
           {
@@ -212,13 +229,16 @@
       {
         "id": "set_windows",
         "title": {
-          "en": "Open or close the windows"
+          "en": "Open or close the windows",
+          "no": "Åpne eller lukke vinduene"
         },
         "titleFormatted": {
-          "en": "[[state]] the windows"
+          "en": "[[state]] the windows",
+          "no": "[[state]] vinduene"
         },
         "hint": {
-          "en": "Requires the remote-control PIN."
+          "en": "Requires the remote-control PIN.",
+          "no": "Krever PIN-koden for fjernkontroll."
         },
         "args": [
           {
@@ -233,13 +253,15 @@
               {
                 "id": "open",
                 "label": {
-                  "en": "Open"
+                  "en": "Open",
+                  "no": "Åpne"
                 }
               },
               {
                 "id": "close",
                 "label": {
-                  "en": "Close"
+                  "en": "Close",
+                  "no": "Lukk"
                 }
               }
             ]
@@ -249,13 +271,16 @@
       {
         "id": "set_charge_limit",
         "title": {
-          "en": "Set charge limit"
+          "en": "Set charge limit",
+          "no": "Sett ladegrense"
         },
         "titleFormatted": {
-          "en": "Set charge limit to [[percent]] %"
+          "en": "Set charge limit to [[percent]] %",
+          "no": "Sett ladegrense til [[percent]] %"
         },
         "hint": {
-          "en": "Not supported by the S05 EV (the car accepts it without effect)."
+          "en": "Not supported by the S05 EV (the car accepts it without effect).",
+          "no": "Støttes ikke av S05 EV (bilen godtar den uten effekt)."
         },
         "args": [
           {
@@ -276,10 +301,12 @@
       {
         "id": "wake_and_refresh",
         "title": {
-          "en": "Wake the car and refresh"
+          "en": "Wake the car and refresh",
+          "no": "Vekk bilen og oppdater"
         },
         "hint": {
-          "en": "Wakes an S05 (at most once every 5 minutes) and waits up to 60 s for a fresh report."
+          "en": "Wakes an S05 (at most once every 5 minutes) and waits up to 60 s for a fresh report.",
+          "no": "Vekker en S05 (maks én gang hvert 5. minutt) og venter opptil 60 s på en ny rapport."
         },
         "args": [
           {
@@ -411,7 +438,8 @@
   "drivers": [
     {
       "name": {
-        "en": "Deepal vehicle"
+        "en": "Deepal vehicle",
+        "no": "Deepal-kjøretøy"
       },
       "class": "car",
       "platforms": [
@@ -454,67 +482,80 @@
         },
         "measure_temperature": {
           "title": {
-            "en": "Cabin temperature"
+            "en": "Cabin temperature",
+            "no": "Kupétemperatur"
           }
         },
         "measure_temperature.outside": {
           "title": {
-            "en": "Outside temperature"
+            "en": "Outside temperature",
+            "no": "Utetemperatur"
           }
         },
         "measure_humidity": {
           "title": {
-            "en": "Cabin humidity"
+            "en": "Cabin humidity",
+            "no": "Luftfuktighet i kupeen"
           }
         },
         "measure_current": {
           "title": {
-            "en": "Charge current"
+            "en": "Charge current",
+            "no": "Ladestrøm"
           }
         },
         "locked": {
           "title": {
-            "en": "Locked"
+            "en": "Locked",
+            "no": "Låst"
           }
         },
         "alarm_contact.doors": {
           "title": {
-            "en": "Doors / hood open"
+            "en": "Doors / hood open",
+            "no": "Dører / panser åpent"
           }
         },
         "alarm_contact.trunk": {
           "title": {
-            "en": "Trunk open"
+            "en": "Trunk open",
+            "no": "Bagasjerom åpent"
           }
         },
         "alarm_contact.windows": {
           "title": {
-            "en": "Windows open"
+            "en": "Windows open",
+            "no": "Vinduer åpne"
           }
         },
         "deepal_tire_pressure.front_left": {
           "title": {
-            "en": "Tire pressure front left"
+            "en": "Tire pressure front left",
+            "no": "Dekktrykk foran venstre"
           }
         },
         "deepal_tire_pressure.front_right": {
           "title": {
-            "en": "Tire pressure front right"
+            "en": "Tire pressure front right",
+            "no": "Dekktrykk foran høyre"
           }
         },
         "deepal_tire_pressure.rear_left": {
           "title": {
-            "en": "Tire pressure rear left"
+            "en": "Tire pressure rear left",
+            "no": "Dekktrykk bak venstre"
           }
         },
         "deepal_tire_pressure.rear_right": {
           "title": {
-            "en": "Tire pressure rear right"
+            "en": "Tire pressure rear right",
+            "no": "Dekktrykk bak høyre"
           }
         },
         "alarm_generic.tire_pressure": {
           "title": {
-            "en": "Tire pressure warning"
+            "en": "Tire pressure warning",
+            "no": "Dekktrykkvarsel"
           }
         },
         "deepal_seat_heat.driver": {
@@ -564,33 +605,39 @@
         {
           "type": "group",
           "label": {
-            "en": "Polling"
+            "en": "Polling",
+            "no": "Datahenting"
           },
           "children": [
             {
               "id": "poll_interval",
               "type": "number",
               "label": {
-                "en": "Poll interval"
+                "en": "Poll interval",
+                "no": "Oppdateringsintervall"
               },
               "hint": {
-                "en": "Minutes between status reads. A normal poll never wakes the car."
+                "en": "Minutes between status reads. A normal poll never wakes the car.",
+                "no": "Minutter mellom hver statuslesing. En vanlig lesing vekker aldri bilen."
               },
               "value": 5,
               "min": 2,
               "max": 120,
               "units": {
-                "en": "min"
+                "en": "min",
+                "no": "min"
               }
             },
             {
               "id": "allow_wake",
               "type": "checkbox",
               "label": {
-                "en": "Wake the car before lock, window and trunk commands"
+                "en": "Wake the car before lock, window and trunk commands",
+                "no": "Vekk bilen før lås-, vindus- og bagasjeromskommandoer"
               },
               "hint": {
-                "en": "Only for MQTT cars (S05). Wakes are limited to one every 5 minutes to protect the 12 V battery."
+                "en": "Only for MQTT cars (S05). Wakes are limited to one every 5 minutes to protect the 12 V battery.",
+                "no": "Kun for MQTT-biler (S05). Oppvåkning er begrenset til én hvert 5. minutt for å skåne 12 V-batteriet."
               },
               "value": true
             }
@@ -599,17 +646,20 @@
         {
           "type": "group",
           "label": {
-            "en": "Remote control"
+            "en": "Remote control",
+            "no": "Fjernkontroll"
           },
           "children": [
             {
               "id": "control_pin",
               "type": "password",
               "label": {
-                "en": "Remote-control PIN"
+                "en": "Remote-control PIN",
+                "no": "PIN-kode for fjernkontroll"
               },
               "hint": {
-                "en": "The 6-digit PIN created in the My Changan app with the account Homey signs in with. Required to lock/unlock and open windows or trunk. It is verified when saved."
+                "en": "The 6-digit PIN created in the My Changan app with the account Homey signs in with. Required to lock/unlock and open windows or trunk. It is verified when saved.",
+                "no": "Den 6-sifrede PIN-koden som er opprettet i My Changan-appen med kontoen Homey logger inn med. Kreves for å låse/låse opp og åpne vinduer eller bagasjerom. Den kontrolleres når den lagres."
               },
               "value": ""
             },
@@ -617,13 +667,15 @@
               "id": "climate_runtime",
               "type": "number",
               "label": {
-                "en": "Climate run time"
+                "en": "Climate run time",
+                "no": "Kjøretid for klima"
               },
               "value": 30,
               "min": 5,
               "max": 30,
               "units": {
-                "en": "min"
+                "en": "min",
+                "no": "min"
               }
             }
           ]
@@ -634,7 +686,8 @@
   "widgets": {
     "car": {
       "name": {
-        "en": "Deepal car"
+        "en": "Deepal car",
+        "no": "Deepal-bil"
       },
       "height": 430,
       "transparent": false,
@@ -656,10 +709,12 @@
     "deepal_charge_time_remaining": {
       "type": "number",
       "title": {
-        "en": "Charge time remaining"
+        "en": "Charge time remaining",
+        "no": "Gjenstående ladetid"
       },
       "units": {
-        "en": "min"
+        "en": "min",
+        "no": "min"
       },
       "decimals": 0,
       "getable": true,
@@ -671,16 +726,19 @@
     "deepal_climate": {
       "type": "boolean",
       "title": {
-        "en": "Climate"
+        "en": "Climate",
+        "no": "Klima"
       },
       "getable": true,
       "setable": true,
       "insights": true,
       "insightsTitleTrue": {
-        "en": "Climate turned on"
+        "en": "Climate turned on",
+        "no": "Klima slått på"
       },
       "insightsTitleFalse": {
-        "en": "Climate turned off"
+        "en": "Climate turned off",
+        "no": "Klima slått av"
       },
       "uiComponent": "toggle",
       "uiQuickAction": true,
@@ -689,7 +747,8 @@
     "deepal_last_update": {
       "type": "string",
       "title": {
-        "en": "Last report"
+        "en": "Last report",
+        "no": "Siste rapport"
       },
       "getable": true,
       "setable": false,
@@ -699,10 +758,12 @@
     "deepal_odometer": {
       "type": "number",
       "title": {
-        "en": "Odometer"
+        "en": "Odometer",
+        "no": "Kilometerteller"
       },
       "units": {
-        "en": "km"
+        "en": "km",
+        "no": "km"
       },
       "decimals": 0,
       "getable": true,
@@ -714,10 +775,12 @@
     "deepal_range": {
       "type": "number",
       "title": {
-        "en": "Range"
+        "en": "Range",
+        "no": "Rekkevidde"
       },
       "units": {
-        "en": "km"
+        "en": "km",
+        "no": "km"
       },
       "decimals": 0,
       "getable": true,
@@ -790,10 +853,12 @@
     "deepal_tire_pressure": {
       "type": "number",
       "title": {
-        "en": "Tire pressure"
+        "en": "Tire pressure",
+        "no": "Dekktrykk"
       },
       "units": {
-        "en": "bar"
+        "en": "bar",
+        "no": "bar"
       },
       "decimals": 2,
       "getable": true,

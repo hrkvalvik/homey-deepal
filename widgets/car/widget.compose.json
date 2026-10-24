@@ -1,5 +1,5 @@
 {
-  "name": { "en": "Deepal car" },
+  "name": { "en": "Deepal car", "no": "Deepal-bil" },
   "height": 430,
   "transparent": false,
   "api": {

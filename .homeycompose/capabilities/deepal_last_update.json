@@ -1,6 +1,6 @@
 {
   "type": "string",
-  "title": { "en": "Last report" },
+  "title": { "en": "Last report", "no": "Siste rapport" },
   "getable": true,
   "setable": false,
   "uiComponent": "sensor",

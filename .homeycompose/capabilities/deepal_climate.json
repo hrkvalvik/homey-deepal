@@ -1,11 +1,11 @@
 {
   "type": "boolean",
-  "title": { "en": "Climate" },
+  "title": { "en": "Climate", "no": "Klima" },
   "getable": true,
   "setable": true,
   "insights": true,
-  "insightsTitleTrue": { "en": "Climate turned on" },
-  "insightsTitleFalse": { "en": "Climate turned off" },
+  "insightsTitleTrue": { "en": "Climate turned on", "no": "Klima slått på" },
+  "insightsTitleFalse": { "en": "Climate turned off", "no": "Klima slått av" },
   "uiComponent": "toggle",
   "uiQuickAction": true,
   "icon": "/assets/capabilities/climate.svg"

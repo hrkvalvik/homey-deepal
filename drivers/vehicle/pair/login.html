@@ -1,50 +1,47 @@
 <header class="homey-header">
-  <h1 class="homey-title">Log in to My Changan</h1>
-  <p class="homey-subtitle">
-    Use a <strong>secondary account</strong> shared from your main one: logging in here can sign the
-    official app out, and the other way round.
-  </p>
+  <h1 class="homey-title" data-i18n="pair.login.title"></h1>
+  <p class="homey-subtitle" data-i18n="pair.login.subtitle"></p>
 </header>
 
 <form id="step-request" class="homey-form" onsubmit="return false">
   <div class="homey-form-group">
-    <label class="homey-form-label" for="method">Login method</label>
+    <label class="homey-form-label" for="method" data-i18n="pair.login.method"></label>
     <select class="homey-form-select" id="method">
-      <option value="email" selected>Email code (recommended)</option>
-      <option value="sms">SMS code</option>
+      <option value="email" selected data-i18n="pair.login.method_email"></option>
+      <option value="sms" data-i18n="pair.login.method_sms"></option>
     </select>
   </div>
   <div class="homey-form-group" id="email-group">
-    <label class="homey-form-label" for="email">Email</label>
+    <label class="homey-form-label" for="email" data-i18n="pair.login.email"></label>
     <input class="homey-form-input" id="email" type="email" autocomplete="username" />
   </div>
   <div class="homey-form-group" id="phone-group" style="display:none">
-    <label class="homey-form-label" for="dialCode">Dial code (digits, e.g. 47)</label>
+    <label class="homey-form-label" for="dialCode" data-i18n="pair.login.dial_code"></label>
     <input class="homey-form-input" id="dialCode" type="text" inputmode="numeric" />
-    <label class="homey-form-label" for="phone">Phone number (without country prefix)</label>
+    <label class="homey-form-label" for="phone" data-i18n="pair.login.phone"></label>
     <input class="homey-form-input" id="phone" type="tel" />
   </div>
   <div class="homey-form-group">
-    <label class="homey-form-label" for="country">Sales country (2-letter code, e.g. NO, ES, GB)</label>
+    <label class="homey-form-label" for="country" data-i18n="pair.login.country"></label>
     <input class="homey-form-input" id="country" type="text" maxlength="2" value="GB" />
   </div>
   <div class="homey-form-group">
-    <label class="homey-form-label" for="environment">Region</label>
+    <label class="homey-form-label" for="environment" data-i18n="pair.login.region"></label>
     <select class="homey-form-select" id="environment">
-      <option value="release_eu" selected>Europe</option>
-      <option value="release_znm">Latin America</option>
+      <option value="release_eu" selected data-i18n="pair.login.region_eu"></option>
+      <option value="release_znm" data-i18n="pair.login.region_latam"></option>
     </select>
   </div>
-  <button class="homey-button-primary-full" id="request-button">Send verification code</button>
+  <button class="homey-button-primary-full" id="request-button" data-i18n="pair.login.send_code"></button>
 </form>
 
 <form id="step-code" class="homey-form" style="display:none" onsubmit="return false">
   <div class="homey-form-group">
-    <label class="homey-form-label" for="code">Verification code</label>
+    <label class="homey-form-label" for="code" data-i18n="pair.login.code"></label>
     <input class="homey-form-input" id="code" type="text" inputmode="numeric" autocomplete="one-time-code" />
   </div>
-  <button class="homey-button-primary-full" id="login-button">Log in</button>
-  <button class="homey-button-transparent" id="back-button">Resend or change address</button>
+  <button class="homey-button-primary-full" id="login-button" data-i18n="pair.login.login"></button>
+  <button class="homey-button-transparent" id="back-button" data-i18n="pair.login.back"></button>
 </form>
 
 <script type="application/javascript">

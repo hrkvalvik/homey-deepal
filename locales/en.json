@@ -8,6 +8,24 @@
     "cooldown": "The car is still running the previous action. Try again in __seconds__ s."
   },
   "pair": {
-    "request_code_first": "Request a verification code first."
+    "request_code_first": "Request a verification code first.",
+    "login": {
+      "title": "Log in to My Changan",
+      "method": "Login method",
+      "method_email": "Email code (recommended)",
+      "method_sms": "SMS code",
+      "email": "Email",
+      "dial_code": "Dial code (digits, e.g. 47)",
+      "phone": "Phone number (without country prefix)",
+      "country": "Sales country (2-letter code, e.g. NO, ES, GB)",
+      "region": "Region",
+      "region_eu": "Europe",
+      "region_latam": "Latin America",
+      "send_code": "Send verification code",
+      "code": "Verification code",
+      "login": "Log in",
+      "back": "Resend or change address",
+      "subtitle": "Use a <strong>secondary account</strong> shared from your main one: logging in here can sign the official app out, and the other way round."
+    }
   }
 }

@@ -1,7 +1,7 @@
 {
   "type": "number",
-  "title": { "en": "Range" },
-  "units": { "en": "km" },
+  "title": { "en": "Range", "no": "Rekkevidde" },
+  "units": { "en": "km", "no": "km" },
   "decimals": 0,
   "getable": true,
   "setable": false,

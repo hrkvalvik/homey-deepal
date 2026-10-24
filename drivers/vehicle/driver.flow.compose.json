@@ -3,32 +3,38 @@
     {
       "id": "charging_started",
       "title": {
-        "en": "Charging started"
+        "en": "Charging started",
+        "no": "Lading startet"
       }
     },
     {
       "id": "charging_stopped",
       "title": {
-        "en": "Charging stopped"
+        "en": "Charging stopped",
+        "no": "Lading stoppet"
       }
     },
     {
       "id": "warning_light_on",
       "title": {
-        "en": "A dashboard warning light turned on"
+        "en": "A dashboard warning light turned on",
+        "no": "Et varsellys i dashbordet ble slått på"
       },
       "hint": {
-        "en": "S05 only: reported while the car is on."
+        "en": "S05 only: reported while the car is on.",
+        "no": "Kun S05: rapporteres mens bilen er på."
       },
       "tokens": [
         {
           "name": "light",
           "type": "string",
           "title": {
-            "en": "Warning light"
+            "en": "Warning light",
+            "no": "Varsellys"
           },
           "example": {
-            "en": "ABS warning"
+            "en": "ABS warning",
+            "no": "ABS-varsel"
           }
         }
       ]
@@ -38,13 +44,15 @@
     {
       "id": "is_charging",
       "title": {
-        "en": "Is !{{|not}} charging"
+        "en": "Is !{{|not}} charging",
+        "no": "Lader !{{|ikke}}"
       }
     },
     {
       "id": "is_plugged_in",
       "title": {
-        "en": "Is !{{|not}} plugged in"
+        "en": "Is !{{|not}} plugged in",
+        "no": "Er !{{|ikke}} koblet til lader"
       }
     }
   ],
@@ -52,10 +60,12 @@
     {
       "id": "climate_on",
       "title": {
-        "en": "Start climate"
+        "en": "Start climate",
+        "no": "Start klima"
       },
       "titleFormatted": {
-        "en": "Start climate at [[temperature]] °C"
+        "en": "Start climate at [[temperature]] °C",
+        "no": "Start klima på [[temperature]] °C"
       },
       "args": [
         {
@@ -65,7 +75,8 @@
           "max": 32,
           "step": 0.5,
           "placeholder": {
-            "en": "22"
+            "en": "22",
+            "no": "22"
           }
         }
       ]
@@ -73,46 +84,55 @@
     {
       "id": "climate_off",
       "title": {
-        "en": "Stop climate"
+        "en": "Stop climate",
+        "no": "Stopp klima"
       }
     },
     {
       "id": "flash_lights",
       "title": {
-        "en": "Flash the lights"
+        "en": "Flash the lights",
+        "no": "Blink med lysene"
       }
     },
     {
       "id": "sound_horn",
       "title": {
-        "en": "Sound the horn"
+        "en": "Sound the horn",
+        "no": "Tut med hornet"
       }
     },
     {
       "id": "flash_and_horn",
       "title": {
-        "en": "Flash the lights and sound the horn"
+        "en": "Flash the lights and sound the horn",
+        "no": "Blink med lysene og tut med hornet"
       }
     },
     {
       "id": "open_trunk",
       "title": {
-        "en": "Open the trunk"
+        "en": "Open the trunk",
+        "no": "Åpne bagasjerommet"
       },
       "hint": {
-        "en": "Requires the remote-control PIN."
+        "en": "Requires the remote-control PIN.",
+        "no": "Krever PIN-koden for fjernkontroll."
       }
     },
     {
       "id": "set_windows",
       "title": {
-        "en": "Open or close the windows"
+        "en": "Open or close the windows",
+        "no": "Åpne eller lukke vinduene"
       },
       "titleFormatted": {
-        "en": "[[state]] the windows"
+        "en": "[[state]] the windows",
+        "no": "[[state]] vinduene"
       },
       "hint": {
-        "en": "Requires the remote-control PIN."
+        "en": "Requires the remote-control PIN.",
+        "no": "Krever PIN-koden for fjernkontroll."
       },
       "args": [
         {
@@ -122,13 +142,15 @@
             {
               "id": "open",
               "label": {
-                "en": "Open"
+                "en": "Open",
+                "no": "Åpne"
               }
             },
             {
               "id": "close",
               "label": {
-                "en": "Close"
+                "en": "Close",
+                "no": "Lukk"
               }
             }
           ]
@@ -138,13 +160,16 @@
     {
       "id": "set_charge_limit",
       "title": {
-        "en": "Set charge limit"
+        "en": "Set charge limit",
+        "no": "Sett ladegrense"
       },
       "titleFormatted": {
-        "en": "Set charge limit to [[percent]] %"
+        "en": "Set charge limit to [[percent]] %",
+        "no": "Sett ladegrense til [[percent]] %"
       },
       "hint": {
-        "en": "Not supported by the S05 EV (the car accepts it without effect)."
+        "en": "Not supported by the S05 EV (the car accepts it without effect).",
+        "no": "Støttes ikke av S05 EV (bilen godtar den uten effekt)."
       },
       "args": [
         {
@@ -160,10 +185,12 @@
     {
       "id": "wake_and_refresh",
       "title": {
-        "en": "Wake the car and refresh"
+        "en": "Wake the car and refresh",
+        "no": "Vekk bilen og oppdater"
       },
       "hint": {
-        "en": "Wakes an S05 (at most once every 5 minutes) and waits up to 60 s for a fresh report."
+        "en": "Wakes an S05 (at most once every 5 minutes) and waits up to 60 s for a fresh report.",
+        "no": "Vekker en S05 (maks én gang hvert 5. minutt) og venter opptil 60 s på en ny rapport."
       }
     },
     {

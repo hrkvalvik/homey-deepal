@@ -40,11 +40,10 @@ homey app run --remote                   # run on Homey with live logs
 
 ## Things learned the hard way
 
-- **Run the Homey CLI from macOS Terminal, not Zed's terminal.** macOS Local Network privacy
-  blocked Node.js in Zed (`EHOSTUNREACH`), so the CLI fell back to Athom's cloud route, where
-  `homey app install` failed with a bare `400`. Test with:
-  `node -e "fetch('https://192-168-68-80.homey.homeylocal.com/api/manager/system/ping?id=677c12a2b10ea90e740c5d12').then(r=>r.text()).then(console.log,console.error)"`
-  (Homey is 192.168.68.80 on a Deco mesh network.)
+- **Run the Homey CLI from macOS Terminal, not an editor's terminal.** macOS Local Network privacy
+  can block Node.js in other terminals (`EHOSTUNREACH`), so the CLI falls back to Athom's cloud
+  route, where `homey app install` fails with a bare `400`. Test the local route with a `fetch` of
+  `https://<homey-ip-with-dashes>.homey.homeylocal.com/api/manager/system/ping?id=<homey-id>`.
 - **Widget height:** Homey keeps a widget hidden until `Homey.ready()`, and a hidden page measures
   0 px. Call `Homey.ready()` without a height (manifest height is used) and send the measured
   height with `Homey.setHeight()` after it is visible. Homey caches widget height, so after a
@@ -69,14 +68,11 @@ homey app run --remote                   # run on Homey with live logs
 
 ## Open items
 
-1. **The owner's Homey still runs v0.1.1.** They ran `homey app install` from an old folder. They
-   need to install from this repo (version 0.2.0) to get seat and steering wheel heating.
-2. **Driver images** (`drivers/vehicle/assets/images/small.png` 75×75, `large.png` 500×500,
-   `xlarge.png` 1000×1000) are still placeholders. The owner has square S05 photos for them that
-   never reached the cloud session. App images (`assets/images/`) and both icons are done.
+1. The owner's Homey runs v0.2.0 (confirmed by the owner).
+2. **Driver images** are square crops of the S05 app photo (`assets/images/xlarge.png`), upscaled
+   for the 1000 px size. Replace them if the owner supplies sharper square photos.
 3. Possible next steps the owner was offered: When/And Flow cards for seat and steering wheel
-   heating (only Then cards exist), Flow cards for range and tire pressure thresholds, Norwegian
-   translations everywhere (partly done for the new capabilities), charge schedule, a GitHub repo.
+   heating (only Then cards exist), Flow cards for range and tire pressure thresholds, charge schedule, publishing the GitHub repo (`hrkvalvik/homey-deepal`).
 4. Publishing to the Homey App Store was discussed but not started. Before that: real app `id`
    (cannot change later), author, support/source URLs, README.txt. Blockers to raise with the
    owner: Deepal logo and S05 photos are Changan/Deepal's brand assets; the app uses Changan's

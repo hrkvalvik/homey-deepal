@@ -1,0 +1,31 @@
+{
+  "errors": {
+    "not_logged_in": "Ikke logget inn på My Changan. Legg til eller reparer et kjøretøy for å logge inn.",
+    "session_expired": "My Changan-økten har utløpt eller ble logget ut av en annen innlogging. Reparer denne enheten for å logge inn på nytt.",
+    "pin_required": "Angi PIN-koden for fjernkontroll i enhetsinnstillingene først.",
+    "pin_format": "PIN-koden må være 6 siffer.",
+    "command_failed": "Bilen avviste kommandoen (__reason__).",
+    "cooldown": "Bilen utfører fortsatt forrige handling. Prøv igjen om __seconds__ s."
+  },
+  "pair": {
+    "request_code_first": "Be om en bekreftelseskode først.",
+    "login": {
+      "title": "Logg inn på My Changan",
+      "method": "Innloggingsmetode",
+      "method_email": "E-postkode (anbefalt)",
+      "method_sms": "SMS-kode",
+      "email": "E-post",
+      "dial_code": "Landskode (siffer, f.eks. 47)",
+      "phone": "Telefonnummer (uten landskode)",
+      "country": "Salgsland (tobokstavskode, f.eks. NO, ES, GB)",
+      "region": "Region",
+      "region_eu": "Europa",
+      "region_latam": "Latin-Amerika",
+      "send_code": "Send bekreftelseskode",
+      "code": "Bekreftelseskode",
+      "login": "Logg inn",
+      "back": "Send på nytt eller endre adresse",
+      "subtitle": "Bruk en <strong>sekundær konto</strong> som er delt fra hovedkontoen din: innlogging her kan logge ut den offisielle appen, og omvendt."
+    }
+  }
+}

@@ -1,7 +1,7 @@
 {
   "type": "number",
-  "title": { "en": "Odometer" },
-  "units": { "en": "km" },
+  "title": { "en": "Odometer", "no": "Kilometerteller" },
+  "units": { "en": "km", "no": "km" },
   "decimals": 0,
   "getable": true,
   "setable": false,

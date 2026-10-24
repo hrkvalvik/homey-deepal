@@ -8,7 +8,8 @@
     "en": "Deepal"
   },
   "description": {
-    "en": "Battery, charging, climate and remote control for Deepal / Changan cars"
+    "en": "Battery, charging, climate and remote control for Deepal / Changan cars",
+    "no": "Batteri, lading, klima og fjernkontroll for Deepal / Changan-biler"
   },
   "category": ["climate"],
   "permissions": [],
@@ -19,9 +20,8 @@
     "xlarge": "/assets/images/xlarge.png"
   },
   "author": {
-    "name": "Your Name",
-    "email": "you@example.com"
+    "name": "hrkvalvik"
   },
-  "support": "https://github.com/YOUR_USER/homey-deepal/issues",
-  "source": "https://github.com/YOUR_USER/homey-deepal"
+  "support": "https://github.com/hrkvalvik/homey-deepal/issues",
+  "source": "https://github.com/hrkvalvik/homey-deepal"
 }

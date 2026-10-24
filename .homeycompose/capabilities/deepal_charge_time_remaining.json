@@ -1,7 +1,7 @@
 {
   "type": "number",
-  "title": { "en": "Charge time remaining" },
-  "units": { "en": "min" },
+  "title": { "en": "Charge time remaining", "no": "Gjenstående ladetid" },
+  "units": { "en": "min", "no": "min" },
   "decimals": 0,
   "getable": true,
   "setable": false,

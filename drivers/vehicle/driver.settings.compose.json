@@ -1,46 +1,46 @@
 [
   {
     "type": "group",
-    "label": { "en": "Polling" },
+    "label": { "en": "Polling", "no": "Datahenting" },
     "children": [
       {
         "id": "poll_interval",
         "type": "number",
-        "label": { "en": "Poll interval" },
-        "hint": { "en": "Minutes between status reads. A normal poll never wakes the car." },
+        "label": { "en": "Poll interval", "no": "Oppdateringsintervall" },
+        "hint": { "en": "Minutes between status reads. A normal poll never wakes the car.", "no": "Minutter mellom hver statuslesing. En vanlig lesing vekker aldri bilen." },
         "value": 5,
         "min": 2,
         "max": 120,
-        "units": { "en": "min" }
+        "units": { "en": "min", "no": "min" }
       },
       {
         "id": "allow_wake",
         "type": "checkbox",
-        "label": { "en": "Wake the car before lock, window and trunk commands" },
-        "hint": { "en": "Only for MQTT cars (S05). Wakes are limited to one every 5 minutes to protect the 12 V battery." },
+        "label": { "en": "Wake the car before lock, window and trunk commands", "no": "Vekk bilen før lås-, vindus- og bagasjeromskommandoer" },
+        "hint": { "en": "Only for MQTT cars (S05). Wakes are limited to one every 5 minutes to protect the 12 V battery.", "no": "Kun for MQTT-biler (S05). Oppvåkning er begrenset til én hvert 5. minutt for å skåne 12 V-batteriet." },
         "value": true
       }
     ]
   },
   {
     "type": "group",
-    "label": { "en": "Remote control" },
+    "label": { "en": "Remote control", "no": "Fjernkontroll" },
     "children": [
       {
         "id": "control_pin",
         "type": "password",
-        "label": { "en": "Remote-control PIN" },
-        "hint": { "en": "The 6-digit PIN created in the My Changan app with the account Homey signs in with. Required to lock/unlock and open windows or trunk. It is verified when saved." },
+        "label": { "en": "Remote-control PIN", "no": "PIN-kode for fjernkontroll" },
+        "hint": { "en": "The 6-digit PIN created in the My Changan app with the account Homey signs in with. Required to lock/unlock and open windows or trunk. It is verified when saved.", "no": "Den 6-sifrede PIN-koden som er opprettet i My Changan-appen med kontoen Homey logger inn med. Kreves for å låse/låse opp og åpne vinduer eller bagasjerom. Den kontrolleres når den lagres." },
         "value": ""
       },
       {
         "id": "climate_runtime",
         "type": "number",
-        "label": { "en": "Climate run time" },
+        "label": { "en": "Climate run time", "no": "Kjøretid for klima" },
         "value": 30,
         "min": 5,
         "max": 30,
-        "units": { "en": "min" }
+        "units": { "en": "min", "no": "min" }
       }
     ]
   }

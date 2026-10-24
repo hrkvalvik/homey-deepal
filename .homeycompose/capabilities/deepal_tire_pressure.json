@@ -1,7 +1,7 @@
 {
   "type": "number",
-  "title": { "en": "Tire pressure" },
-  "units": { "en": "bar" },
+  "title": { "en": "Tire pressure", "no": "Dekktrykk" },
+  "units": { "en": "bar", "no": "bar" },
   "decimals": 2,
   "getable": true,
   "setable": false,

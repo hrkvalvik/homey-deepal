@@ -1,6 +1,7 @@
 {
   "name": {
-    "en": "Deepal vehicle"
+    "en": "Deepal vehicle",
+    "no": "Deepal-kjøretøy"
   },
   "class": "car",
   "platforms": [
@@ -43,67 +44,80 @@
     },
     "measure_temperature": {
       "title": {
-        "en": "Cabin temperature"
+        "en": "Cabin temperature",
+        "no": "Kupétemperatur"
       }
     },
     "measure_temperature.outside": {
       "title": {
-        "en": "Outside temperature"
+        "en": "Outside temperature",
+        "no": "Utetemperatur"
       }
     },
     "measure_humidity": {
       "title": {
-        "en": "Cabin humidity"
+        "en": "Cabin humidity",
+        "no": "Luftfuktighet i kupeen"
       }
     },
     "measure_current": {
       "title": {
-        "en": "Charge current"
+        "en": "Charge current",
+        "no": "Ladestrøm"
       }
     },
     "locked": {
       "title": {
-        "en": "Locked"
+        "en": "Locked",
+        "no": "Låst"
       }
     },
     "alarm_contact.doors": {
       "title": {
-        "en": "Doors / hood open"
+        "en": "Doors / hood open",
+        "no": "Dører / panser åpent"
       }
     },
     "alarm_contact.trunk": {
       "title": {
-        "en": "Trunk open"
+        "en": "Trunk open",
+        "no": "Bagasjerom åpent"
       }
     },
     "alarm_contact.windows": {
       "title": {
-        "en": "Windows open"
+        "en": "Windows open",
+        "no": "Vinduer åpne"
       }
     },
     "deepal_tire_pressure.front_left": {
       "title": {
-        "en": "Tire pressure front left"
+        "en": "Tire pressure front left",
+        "no": "Dekktrykk foran venstre"
       }
     },
     "deepal_tire_pressure.front_right": {
       "title": {
-        "en": "Tire pressure front right"
+        "en": "Tire pressure front right",
+        "no": "Dekktrykk foran høyre"
       }
     },
     "deepal_tire_pressure.rear_left": {
       "title": {
-        "en": "Tire pressure rear left"
+        "en": "Tire pressure rear left",
+        "no": "Dekktrykk bak venstre"
       }
     },
     "deepal_tire_pressure.rear_right": {
       "title": {
-        "en": "Tire pressure rear right"
+        "en": "Tire pressure rear right",
+        "no": "Dekktrykk bak høyre"
       }
     },
     "alarm_generic.tire_pressure": {
       "title": {
-        "en": "Tire pressure warning"
+        "en": "Tire pressure warning",
+        "no": "Dekktrykkvarsel"
       }
     },
     "deepal_seat_heat.driver": {
