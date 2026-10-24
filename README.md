@@ -222,5 +222,5 @@ Edit `.homeycompose/`, not the generated `app.json`. The `ha-deepal-alternative`
 ## License and trademarks
 
 MIT, see [LICENSE](LICENSE). Deepal and Changan are trademarks of their owners. This project is not
-affiliated with them. The app and device images are photos taken by the author. The Deepal emblem
-used as the app icon belongs to its owner.
+affiliated with them. The app and device images are photos taken by the author. The app icon is
+an outline based on the Deepal emblem, which belongs to its owner, and may be replaced on request.
