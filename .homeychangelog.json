@@ -1,5 +1,8 @@
 {
   "0.2.0": {
     "en": "First release: S05 telemetry, climate, lock, seat and steering wheel heating, dashboard widget"
+  },
+  "0.2.1": {
+    "en": "New driver icon"
   }
 }
